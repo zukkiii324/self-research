@@ -1,0 +1,10 @@
+site_name: Note Multi-Agent Blog
+site_description: 技術記事を自動生成して静的サイトへ公開するパイプライン
+theme:
+  name: mkdocs
+  palette:
+    primary: indigo
+nav:
+  - Home: index.md
+extra:
+  generator: note-team static blog

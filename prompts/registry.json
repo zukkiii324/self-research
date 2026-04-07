@@ -1,0 +1,40 @@
+{
+  "project": "note-multi-agent-article-production",
+  "roles": [
+    {
+      "id": "editor_in_chief",
+      "title": "Editor in Chief",
+      "file": "editor_in_chief.md"
+    },
+    {
+      "id": "strategy",
+      "title": "Strategy",
+      "file": "strategy.md"
+    },
+    {
+      "id": "research",
+      "title": "Research",
+      "file": "research.md"
+    },
+    {
+      "id": "outline",
+      "title": "Outline",
+      "file": "outline.md"
+    },
+    {
+      "id": "draft",
+      "title": "Draft",
+      "file": "draft.md"
+    },
+    {
+      "id": "review",
+      "title": "Review",
+      "file": "review.md"
+    },
+    {
+      "id": "final_edit",
+      "title": "Final Edit",
+      "file": "final_edit.md"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "project": {
+    "name": "note-multi-agent-article-production",
+    "article_id": "note-2026-04-ai-writing-workflow",
+    "language": "ja"
+  },
+  "brief": {
+    "topic": "複数エージェントで記事制作を進める運用設計",
+    "goal": "Noteで公開する記事として、実務で使える組織体制とワークフローを紹介する",
+    "audience": [
+      "個人で発信している編集者",
+      "生成AIを制作フローに組み込みたいマーケター",
+      "少人数チームで執筆を分業したい企画担当"
+    ],
+    "angle": "単なるAI活用例ではなく、役割分担・品質ゲート・成果物管理まで含めた運用設計として示す",
+    "tone": "実務的で簡潔、過度に煽らない",
+    "length_range": {
+      "min_chars": 3500,
+      "max_chars": 6000
+    },
+    "deliverables": [
+      "記事本文",
+      "タイトル案",
+      "導入文",
+      "見出し構成"
+    ],
+    "must_cover": [
+      "役割定義",
+      "各エージェントの入出力",
+      "品質管理",
+      "レビュー工程",
+      "公開前チェック"
+    ],
+    "constraints": [
+      "Note向けに読みやすい文体にする",
+      "抽象論だけで終わらせない",
+      "実践に移しやすい粒度で書く"
+    ],
+    "references": [
+      {
+        "label": "社内のAI執筆フロー案",
+        "type": "internal",
+        "note": "このサンプルではダミーとして扱う"
+      }
+    ]
+  },
+  "workflow": {
+    "sequence": [
+      "editor_in_chief",
+      "strategy",
+      "research",
+      "outline",
+      "draft",
+      "review",
+      "final_edit"
+    ],
+    "notes": [
+      "strategy と research は必要に応じて反復する",
+      "review で重大な指摘があれば draft に戻す",
+      "final_edit は出版直前の整形だけに限定する"
+    ]
+  }
+}
