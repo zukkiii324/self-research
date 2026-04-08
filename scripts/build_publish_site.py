@@ -456,7 +456,7 @@ def build_related_articles(articles: list[Article]) -> None:
 
 def build_infographic_panel(group: dict[str, object], article: Article) -> str:
     section_pills = "".join(
-        f'<a class="section-pill" href="#{html.escape(article.anchor)}-section-{index + 1}">{html.escape(label)}</a>'
+        f'<a class="section-pill" data-open-detail href="#{html.escape(article.anchor)}-section-{index + 1}">{html.escape(label)}</a>'
         for index, label in enumerate(article.section_labels)
     ) or '<span class="section-pill muted">本文の構成は本文中で確認</span>'
     highlights = "".join(
@@ -468,15 +468,48 @@ def build_infographic_panel(group: dict[str, object], article: Article) -> str:
 """
         for index, point in enumerate(article.highlight_points, start=1)
     )
+    section_cards = "".join(
+        f"""
+<div class="subpanel-row">
+  <span class="subpanel-step">{index}</span>
+  <p>{html.escape(label)}</p>
+</div>
+"""
+        for index, label in enumerate(article.section_labels[:4], start=1)
+    ) or '<p class="subpanel-empty">本文中で構成を確認できます。</p>'
+    narrative_points = article.highlight_points[:2] or [article.summary]
+    narrative_cards = "".join(f"<li>{html.escape(point)}</li>" for point in narrative_points)
     return f"""
 <section class="infographic-panel">
-  <div class="info-copy">
-    <div class="info-kicker">{html.escape(str(group['label']))} / ARTICLE MAP</div>
-    <h3>{html.escape(article.title)}</h3>
-    <p>{html.escape(article.summary)}</p>
+  <div class="info-top">
+    <div class="info-copy">
+      <div class="info-kicker">{html.escape(str(group['label']))} / ARTICLE MAP</div>
+      <h3>{html.escape(article.title)}</h3>
+      <p>{html.escape(article.summary)}</p>
+    </div>
+    <div class="article-actions">
+      <button class="detail-button" type="button" data-toggle-detail data-target="{html.escape(article.anchor)}-detail" aria-expanded="false">詳細を見る</button>
+    </div>
   </div>
-  <div class="insight-grid">
-    {highlights}
+  <div class="subpanel-grid">
+    <section class="subpanel-card">
+      <div class="subpanel-kicker">ポイント整理</div>
+      <div class="insight-grid">
+        {highlights}
+      </div>
+    </section>
+    <section class="subpanel-card">
+      <div class="subpanel-kicker">本文の流れ</div>
+      <div class="subpanel-stack">
+        {section_cards}
+      </div>
+    </section>
+    <section class="subpanel-card">
+      <div class="subpanel-kicker">読みどころ</div>
+      <ul class="narrative-list">
+        {narrative_cards}
+      </ul>
+    </section>
   </div>
   <div class="section-pills">
     {section_pills}
@@ -1131,7 +1164,7 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       margin-bottom: 10px;
     }}
     .info-copy {{
-      margin-bottom: 14px;
+      min-width: 0;
     }}
     .info-copy h3 {{
       margin: 0 0 8px;
@@ -1143,11 +1176,91 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       color: var(--muted);
       line-height: 1.8;
     }}
+    .info-top {{
+      display: grid;
+      gap: 14px;
+      margin-bottom: 14px;
+    }}
+    .article-actions {{
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }}
+    .detail-button {{
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--ink), #24313c);
+      color: #fff;
+      padding: 12px 18px;
+      font: inherit;
+      font-size: 0.92rem;
+      cursor: pointer;
+      box-shadow: 0 16px 30px rgba(19, 33, 45, 0.16);
+    }}
+    .detail-button:hover {{
+      transform: translateY(-1px);
+    }}
+    .subpanel-grid {{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin: 0 0 14px;
+    }}
+    .subpanel-card {{
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      min-width: 0;
+    }}
+    .subpanel-kicker {{
+      margin-bottom: 10px;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+    }}
+    .subpanel-stack {{
+      display: grid;
+      gap: 10px;
+    }}
+    .subpanel-row {{
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 10px;
+      align-items: start;
+    }}
+    .subpanel-step {{
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(29,78,216,0.12);
+      color: var(--accent-3);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }}
+    .subpanel-row p,
+    .subpanel-empty {{
+      margin: 0;
+      line-height: 1.7;
+      color: #24313c;
+    }}
+    .narrative-list {{
+      margin: 0;
+      padding-left: 1.1rem;
+      color: #24313c;
+    }}
+    .narrative-list li + li {{
+      margin-top: 8px;
+    }}
     .insight-grid {{
       display: grid;
       grid-template-columns: 1fr;
       gap: 10px;
-      margin: 0 0 14px;
+      margin: 0;
     }}
     .insight-card {{
       display: grid;
@@ -1208,6 +1321,12 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
     }}
     .article-panel .article-body {{
       min-width: 0;
+    }}
+    .article-detail[hidden] {{
+      display: none !important;
+    }}
+    .article-detail {{
+      padding-top: 8px;
     }}
     .article-panel .article-body h1 {{
       display: none;
@@ -1354,6 +1473,13 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       }}
       .insight-grid {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }}
+      .info-top {{
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+      }}
+      .subpanel-grid {{
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }}
       .filter-pills {{
         width: auto;
@@ -1672,10 +1798,12 @@ def build_group_page(group: dict[str, object], groups: list[dict[str, object]]) 
     </div>
   </header>
   {build_infographic_panel(group, article)}
-  <div class="article-body">{article.rendered}</div>
-  <div class="source-links">
-    <h3>関連記事</h3>
-    <ul>{"".join(f'<li><a href="#{html.escape(anchor)}">{html.escape(title)}</a></li>' for anchor, title in article.related_articles) or "<li>同カテゴリ内で近い記事は準備中です。</li>"}</ul>
+  <div class="article-detail" id="{html.escape(article.anchor)}-detail" hidden>
+    <div class="article-body">{article.rendered}</div>
+    <div class="source-links">
+      <h3>関連記事</h3>
+      <ul>{"".join(f'<li><a href="#{html.escape(anchor)}">{html.escape(title)}</a></li>' for anchor, title in article.related_articles) or "<li>同カテゴリ内で近い記事は準備中です。</li>"}</ul>
+    </div>
   </div>
 </article>
 """
@@ -1743,6 +1871,67 @@ def build_group_page(group: dict[str, object], groups: list[dict[str, object]]) 
   </section>
   <div class="footer">Category archive: {html.escape(str(group['label']))} | Repository: <a href="{REPO_URL}" target="_blank" rel="noreferrer">zukkiii324/self-research</a></div>
 </main>
+<script>
+const openDetail = (targetId) => {{
+  const detail = document.getElementById(targetId);
+  if (!detail) return;
+  detail.hidden = false;
+  const button = document.querySelector(`[data-toggle-detail][data-target="${{targetId}}"]`);
+  if (button) {{
+    button.textContent = '本文を閉じる';
+    button.setAttribute('aria-expanded', 'true');
+  }}
+}};
+
+const closeDetail = (targetId) => {{
+  const detail = document.getElementById(targetId);
+  if (!detail) return;
+  detail.hidden = true;
+  const button = document.querySelector(`[data-toggle-detail][data-target="${{targetId}}"]`);
+  if (button) {{
+    button.textContent = '詳細を見る';
+    button.setAttribute('aria-expanded', 'false');
+  }}
+}};
+
+document.querySelectorAll('[data-toggle-detail]').forEach((button) => {{
+  button.addEventListener('click', () => {{
+    const targetId = button.getAttribute('data-target');
+    if (!targetId) return;
+    const detail = document.getElementById(targetId);
+    if (!detail) return;
+    if (detail.hidden) {{
+      openDetail(targetId);
+      detail.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+    }} else {{
+      closeDetail(targetId);
+    }}
+  }});
+}});
+
+document.querySelectorAll('[data-open-detail]').forEach((link) => {{
+  link.addEventListener('click', () => {{
+    const article = link.closest('.article-panel');
+    if (!article) return;
+    openDetail(`${{article.id}}-detail`);
+  }});
+}});
+
+const openFromHash = () => {{
+  const hash = window.location.hash.replace('#', '');
+  if (!hash) return;
+  const target = document.getElementById(hash);
+  if (!target) return;
+  const article = target.classList.contains('article-panel')
+    ? target
+    : target.closest('.article-panel');
+  if (!article) return;
+  openDetail(`${{article.id}}-detail`);
+}};
+
+window.addEventListener('hashchange', openFromHash);
+openFromHash();
+</script>
 """
     return page_shell(str(group["label"]), body)
 

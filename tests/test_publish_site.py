@@ -55,7 +55,10 @@ class PublishSiteTest(unittest.TestCase):
             self.assertIn("overflow-wrap: anywhere;", html)
             self.assertIn('<a href="https://example.com/reference">公式サイト</a>', html)
             self.assertIn('class="infographic-panel"', html)
-            self.assertIn('class="insight-grid"', html)
+            self.assertIn('class="subpanel-grid"', html)
+            self.assertIn('class="subpanel-card"', html)
+            self.assertIn('data-toggle-detail', html)
+            self.assertIn('class="article-detail"', html)
             self.assertNotIn('class="info-stats"', html)
 
 
