@@ -84,7 +84,6 @@ def main() -> int:
         default=Path("static_blog_site/docs"),
         help="target mkdocs docs directory",
     )
-
     args = parser.parse_args()
     args.docs_root.mkdir(parents=True, exist_ok=True)
 
