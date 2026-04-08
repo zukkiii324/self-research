@@ -53,6 +53,9 @@ class PublishedArticle:
     title: str
     summary: str
     tokens: set[str]
+    headings: tuple[str, ...]
+    topic_dir: str
+    char_ngrams: set[str]
 
 
 def load_topic_catalog(path: Path) -> list[TopicSpec]:
@@ -88,17 +91,37 @@ def _tokenize(text: str) -> set[str]:
     return {token.lower() for token in TOKEN_PATTERN.findall(text)}
 
 
-def _read_title_and_summary(path: Path) -> tuple[str, str]:
+def _char_ngrams(text: str, size: int = 3) -> set[str]:
+    compact = re.sub(r"\s+", "", text.lower())
+    if len(compact) < size:
+        return {compact} if compact else set()
+    return {compact[index:index + size] for index in range(len(compact) - size + 1)}
+
+
+def _jaccard(left: set[str], right: set[str]) -> float:
+    if not left or not right:
+        return 0.0
+    union = left | right
+    if not union:
+        return 0.0
+    return len(left & right) / len(union)
+
+
+def _read_article_metadata(path: Path) -> tuple[str, str, tuple[str, ...]]:
     lines = [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     title = ""
+    headings: list[str] = []
     for line in lines:
         if line.startswith("#"):
-            title = line.lstrip("#").strip()
-            break
+            cleaned = line.lstrip("#").strip()
+            if not title:
+                title = cleaned
+            elif cleaned:
+                headings.append(cleaned)
     if not title:
         title = path.stem
     body = " ".join(line for line in lines if not line.startswith("#"))
-    return title, body[:220]
+    return title, body[:220], tuple(headings[:8])
 
 
 def load_published_articles(content_root: Path) -> list[PublishedArticle]:
@@ -106,32 +129,33 @@ def load_published_articles(content_root: Path) -> list[PublishedArticle]:
     for path in sorted(content_root.rglob("*.md")):
         if path.name.lower().startswith("readme"):
             continue
-        title, summary = _read_title_and_summary(path)
+        title, summary, headings = _read_article_metadata(path)
+        combined_text = " ".join([title, summary, *headings]).strip()
         articles.append(
             PublishedArticle(
                 path=path,
                 title=title,
                 summary=summary,
-                tokens=_tokenize(f"{title} {summary}"),
+                tokens=_tokenize(combined_text),
+                headings=headings,
+                topic_dir=path.parent.name,
+                char_ngrams=_char_ngrams(combined_text),
             )
         )
     return articles
 
 
 def article_overlap_score(text: str, article: PublishedArticle) -> float:
-    tokens = _tokenize(text)
-    if not tokens or not article.tokens:
-        return 0.0
-    intersection = len(tokens & article.tokens)
-    union = len(tokens | article.tokens)
-    return intersection / union if union else 0.0
+    return _jaccard(_tokenize(text), article.tokens)
 
 
 def candidate_overlap_score(entry: FeedEntry, article: PublishedArticle) -> float:
     combined_text = f"{entry.title} {entry.summary}".strip()
     body_overlap = article_overlap_score(combined_text, article)
     title_overlap = article_overlap_score(entry.title, article)
-    return max(body_overlap, title_overlap)
+    ngram_overlap = _jaccard(_char_ngrams(combined_text), article.char_ngrams)
+    headline_overlap = _jaccard(_tokenize(entry.title), _tokenize(" ".join(article.headings)))
+    return max(body_overlap, title_overlap, (body_overlap * 0.45) + (ngram_overlap * 0.4) + (headline_overlap * 0.15))
 
 
 def parse_feed(url: str, timeout_seconds: int = 20) -> list[FeedEntry]:
@@ -241,20 +265,33 @@ def choose_article_candidate(
         for entry in entries:
             related = sorted(
                 published_articles,
-                key=lambda article: candidate_overlap_score(entry, article),
+                key=lambda article: (
+                    candidate_overlap_score(entry, article),
+                    1 if article.topic_dir == topic.output_dir else 0,
+                ),
                 reverse=True,
             )[:5]
             highest_overlap = candidate_overlap_score(entry, related[0]) if related else 0.0
-            if highest_overlap >= 0.58:
+            same_topic_overlap = max(
+                (
+                    candidate_overlap_score(entry, article)
+                    for article in published_articles
+                    if article.topic_dir == topic.output_dir
+                ),
+                default=0.0,
+            )
+            effective_overlap = max(highest_overlap, same_topic_overlap)
+            if effective_overlap >= 0.58:
                 continue
-            article_mode = "update" if highest_overlap >= 0.36 and related else "new"
-            target_article = related[0] if article_mode == "update" and related else None
+            target_pool = [article for article in related if article.topic_dir == topic.output_dir] or related
+            article_mode = "update" if effective_overlap >= 0.36 and target_pool else "new"
+            target_article = target_pool[0] if article_mode == "update" and target_pool else None
             freshness_bonus = 1.0
             if entry.published_at:
                 freshness_bonus = max(0.1, 1 - (datetime.now(timezone.utc) - entry.published_at).total_seconds() / 86400)
             authority_bonus = 0.3 if any(domain in entry.source_domain for domain in topic.preferred_domains) else 0.0
             update_penalty = 0.08 if article_mode == "update" else 0.0
-            score = freshness_bonus + authority_bonus - (highest_overlap * 1.35) - update_penalty
+            score = freshness_bonus + authority_bonus - (effective_overlap * 1.35) - update_penalty
             if best_choice is None or score > best_choice[0]:
                 best_choice = (score, topic, entry, related, target_article, article_mode)
     if best_choice is None:

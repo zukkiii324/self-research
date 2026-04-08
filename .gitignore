@@ -3,3 +3,7 @@ __pycache__/
 .pytest_cache/
 runs/*
 !runs/.gitkeep
+publish_site/
+publish_site_debug/
+static_blog_site/site/
+static_blog_site/static_blog_site/
