@@ -16,6 +16,15 @@ CATALOG_PATH = Path("config/topic_catalog.json")
 REPO_URL = "https://github.com/zukkiii324/self-research"
 SITE_TITLE = "Editorial Playground"
 DATE_PATTERN = re.compile(r"^(\d{4}-\d{2}-\d{2})")
+TOPIC_VISUALS = {
+    "baby": {"hero": "🍼", "steps": ["🍼", "👀", "🛏️", "🧸"], "chips": ["やさしく観察", "不安をほどく", "今日の行動"]},
+    "ai_practical": {"hero": "🧠", "steps": ["⚖️", "🤖", "🛠️", "✅"], "chips": ["比較で選ぶ", "用途で置く", "実務判断"]},
+    "claude": {"hero": "🤎", "steps": ["🧭", "🧩", "🔧", "📌"], "chips": ["設計で使う", "流れで見る", "運用で決める"]},
+    "industry_dx_ai_watch": {"hero": "🏭", "steps": ["🏭", "🛒", "🏦", "🚚"], "chips": ["業界差を見る", "構造変化", "導入の意味"]},
+    "disaster_dx": {"hero": "🚨", "steps": ["🚨", "🏛️", "📡", "🧭"], "chips": ["国と民間", "現場の変化", "次の論点"]},
+    "apple_products": {"hero": "🍎", "steps": ["📱", "💻", "⌚", "🎯"], "chips": ["用途で選ぶ", "違いを見る", "買い分け"]},
+    "tennis_menu": {"hero": "🎾", "steps": ["🎾", "👣", "💪", "🏁"], "chips": ["目的で回す", "本数で調整", "明日も続く"]},
+}
 
 
 @dataclass
@@ -473,61 +482,84 @@ def build_related_articles(articles: list[Article]) -> None:
         article.related_articles = [(item.anchor, item.title) for _, item in scored[:3] if _ > 0]
 
 
+def compact_visual_text(text: str, limit: int = 14) -> str:
+    compact = re.sub(r"\s+", " ", text).strip()
+    return compact[:limit] + ("…" if len(compact) > limit else "")
+
+
+def group_visuals(group: dict[str, object]) -> dict[str, object]:
+    slug = str(group.get("slug") or "")
+    return TOPIC_VISUALS.get(slug, {"hero": "✨", "steps": ["🧭", "📌", "🪄", "✅"], "chips": ["要点把握", "流れ確認", "次の行動"]})
+
+
 def build_infographic_panel(group: dict[str, object], article: Article) -> str:
+    visuals = group_visuals(group)
     section_pills = "".join(
         f'<a class="section-pill" data-open-detail href="#{html.escape(article.anchor)}-section-{index + 1}">{html.escape(label)}</a>'
         for index, label in enumerate(article.section_labels)
     ) or '<span class="section-pill muted">本文の構成は本文中で確認</span>'
+    visual_chips = "".join(
+        f'<span class="visual-chip">{emoji} {html.escape(label)}</span>'
+        for emoji, label in zip(visuals["steps"], visuals["chips"])
+    )
     highlights = "".join(
         f"""
-<div class="insight-card">
-  <div class="insight-index">{index}</div>
-  <p>{html.escape(point)}</p>
+<div class="emoji-tile tone-{(index % 3) + 1}">
+  <div class="emoji-mark">{visuals["steps"][(index - 1) % len(visuals["steps"])]}</div>
+  <strong>{html.escape(compact_visual_text(point, 15))}</strong>
 </div>
 """
         for index, point in enumerate(article.highlight_points, start=1)
     )
     section_cards = "".join(
         f"""
-<div class="subpanel-row">
-  <span class="subpanel-step">{index}</span>
-  <p>{html.escape(label)}</p>
+<div class="flow-node">
+  <span class="flow-icon">{visuals["steps"][(index - 1) % len(visuals["steps"])]}</span>
+  <span>{html.escape(compact_visual_text(label, 11))}</span>
 </div>
 """
         for index, label in enumerate(article.section_labels[:4], start=1)
-    ) or '<p class="subpanel-empty">本文中で構成を確認できます。</p>'
-    narrative_points = article.highlight_points[:2] or [article.summary]
-    narrative_cards = "".join(f"<li>{html.escape(point)}</li>" for point in narrative_points)
+    ) or '<p class="subpanel-empty">本文の流れは本文内で確認できます。</p>'
+    summary_tokens = [compact_visual_text(part, 12) for part in re.split(r"[、。・/]", article.summary) if part.strip()][:3]
+    if not summary_tokens:
+        summary_tokens = [compact_visual_text(article.summary, 12)]
+    signal_bands = "".join(
+        f'<span class="signal-pill band-{index}">{emoji} {html.escape(token)}</span>'
+        for index, (emoji, token) in enumerate(zip(visuals["steps"], summary_tokens), start=1)
+    )
     return f"""
-<section class="infographic-panel">
+<section class="infographic-panel" data-theme="{html.escape(str(group.get('slug') or 'default'))}">
   <div class="info-top">
     <div class="info-copy">
       <div class="info-kicker">{html.escape(str(group['label']))} / ARTICLE MAP</div>
-      <h3>この記事でつかめること</h3>
-      <p>{html.escape(article.summary)}</p>
+      <h3>{visuals["hero"]} ひと目でつかむ</h3>
+      <p>{html.escape(compact_visual_text(article.summary, 40))}</p>
     </div>
     <div class="article-actions">
       <button class="detail-button" type="button" data-toggle-detail data-target="{html.escape(article.anchor)}-detail" aria-expanded="false">詳細を見る</button>
     </div>
   </div>
+  <div class="visual-ribbon">
+    {visual_chips}
+  </div>
   <div class="subpanel-grid">
     <section class="subpanel-card">
-      <div class="subpanel-kicker">ポイント整理</div>
-      <div class="insight-grid">
+      <div class="subpanel-kicker">Focus</div>
+      <div class="emoji-grid">
         {highlights}
       </div>
     </section>
     <section class="subpanel-card">
-      <div class="subpanel-kicker">本文の流れ</div>
-      <div class="subpanel-stack">
+      <div class="subpanel-kicker">Flow</div>
+      <div class="flow-strip">
         {section_cards}
       </div>
     </section>
     <section class="subpanel-card">
-      <div class="subpanel-kicker">読みどころ</div>
-      <ul class="narrative-list">
-        {narrative_cards}
-      </ul>
+      <div class="subpanel-kicker">Angle</div>
+      <div class="signal-bands">
+        {signal_bands}
+      </div>
     </section>
   </div>
   <div class="section-pills">
@@ -1333,6 +1365,23 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       gap: 14px;
       margin-bottom: 14px;
     }}
+    .visual-ribbon {{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 0 0 14px;
+    }}
+    .visual-chip {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(19,33,45,0.08);
+      font-size: 0.84rem;
+      color: #24313c;
+    }}
     .article-actions {{
       display: flex;
       align-items: center;
@@ -1373,71 +1422,92 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       text-transform: uppercase;
       color: var(--accent-2);
     }}
-    .subpanel-stack {{
+    .emoji-grid {{
       display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
     }}
-    .subpanel-row {{
+    .emoji-tile {{
       display: grid;
-      grid-template-columns: 28px 1fr;
-      gap: 10px;
-      align-items: start;
+      gap: 8px;
+      justify-items: start;
+      padding: 14px 12px;
+      border-radius: 16px;
+      min-height: 110px;
+      border: 1px solid rgba(19,33,45,0.08);
     }}
-    .subpanel-step {{
+    .emoji-tile strong {{
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }}
+    .tone-1 {{
+      background: linear-gradient(180deg, rgba(254,215,170,0.34), rgba(255,255,255,0.85));
+    }}
+    .tone-2 {{
+      background: linear-gradient(180deg, rgba(191,219,254,0.34), rgba(255,255,255,0.85));
+    }}
+    .tone-3 {{
+      background: linear-gradient(180deg, rgba(187,247,208,0.34), rgba(255,255,255,0.85));
+    }}
+    .emoji-mark {{
       display: grid;
       place-items: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 999px;
-      background: rgba(29,78,216,0.12);
-      color: var(--accent-3);
-      font-size: 0.82rem;
-      font-weight: 700;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      font-size: 1.25rem;
     }}
-    .subpanel-row p,
-    .subpanel-empty {{
-      margin: 0;
-      line-height: 1.7;
-      color: #24313c;
-    }}
-    .narrative-list {{
-      margin: 0;
-      padding-left: 1.1rem;
-      color: #24313c;
-    }}
-    .narrative-list li + li {{
-      margin-top: 8px;
-    }}
-    .insight-grid {{
+    .flow-strip {{
       display: grid;
-      grid-template-columns: 1fr;
       gap: 10px;
-      margin: 0;
     }}
-    .insight-card {{
+    .flow-node {{
       display: grid;
       grid-template-columns: 34px 1fr;
       gap: 10px;
       align-items: start;
-      padding: 12px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.8);
-      border: 1px solid var(--line);
     }}
-    .insight-index {{
+    .flow-icon {{
       display: grid;
       place-items: center;
       width: 34px;
       height: 34px;
       border-radius: 999px;
-      background: var(--ink);
-      color: #fff;
-      font-size: 0.9rem;
-      font-weight: 700;
+      background: rgba(29,78,216,0.12);
+      font-size: 1rem;
     }}
-    .insight-card p {{
+    .flow-node span:last-child,
+    .subpanel-empty {{
       margin: 0;
       line-height: 1.7;
+      color: #24313c;
+    }}
+    .signal-bands {{
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }}
+    .signal-pill {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      line-height: 1.4;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(19,33,45,0.08);
+    }}
+    .band-1 {{
+      background: rgba(254,215,170,0.38);
+    }}
+    .band-2 {{
+      background: rgba(191,219,254,0.38);
+    }}
+    .band-3 {{
+      background: rgba(187,247,208,0.38);
     }}
     .section-pills {{
       display: flex;
@@ -1629,15 +1699,15 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       .category-tools-grid {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }}
-      .insight-grid {{
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }}
       .info-top {{
         grid-template-columns: minmax(0, 1fr) auto;
         align-items: end;
       }}
       .subpanel-grid {{
         grid-template-columns: repeat(3, minmax(0, 1fr));
+      }}
+      .flow-strip {{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }}
       .filter-pills {{
         width: auto;
