@@ -1,6 +1,6 @@
 {
   "date": "2026-04-08",
-  "generated_at": "2026-04-08T10:58:04.324459",
+  "generated_at": "2026-04-08T16:20:06.400774",
   "published_topic_count": 7,
   "completed_topic_count": 7,
   "missing_topic_count": 0,
@@ -12,8 +12,8 @@
       "slug": "baby",
       "has_today_article": true,
       "today_article": "2026-04-08-6month-milestone-check.md",
-      "latest_article": "2026-04-08-6month-milestone-check.md",
-      "latest_date": "2026-04-08"
+      "latest_article": "2026-04-09-comfort-and-self-soothing.md",
+      "latest_date": "2026-04-09"
     },
     {
       "topic_id": "ai_practical",
@@ -22,8 +22,8 @@
       "slug": "ai_practical",
       "has_today_article": true,
       "today_article": "2026-04-08-selection-matrix.md",
-      "latest_article": "2026-04-08-selection-matrix.md",
-      "latest_date": "2026-04-08"
+      "latest_article": "2026-04-09-first-30-days.md",
+      "latest_date": "2026-04-09"
     },
     {
       "topic_id": "claude",
@@ -32,8 +32,8 @@
       "slug": "claude",
       "has_today_article": true,
       "today_article": "2026-04-08-claude-projects-research.md",
-      "latest_article": "2026-04-08-claude-projects-research.md",
-      "latest_date": "2026-04-08"
+      "latest_article": "2026-04-09-claude-team-handoff.md",
+      "latest_date": "2026-04-09"
     },
     {
       "topic_id": "industry_dx_ai_watch",
@@ -42,8 +42,8 @@
       "slug": "industry_dx_ai_watch",
       "has_today_article": true,
       "today_article": "2026-04-08-telecommunications.md",
-      "latest_article": "2026-04-08-telecommunications.md",
-      "latest_date": "2026-04-08"
+      "latest_article": "2026-04-09-energy.md",
+      "latest_date": "2026-04-09"
     },
     {
       "topic_id": "disaster_dx",
@@ -52,8 +52,8 @@
       "slug": "disaster_dx",
       "has_today_article": true,
       "today_article": "2026-04-08-citizen-facing-disaster-dx.md",
-      "latest_article": "2026-04-08-citizen-facing-disaster-dx.md",
-      "latest_date": "2026-04-08"
+      "latest_article": "2026-04-09-bcp-and-workforce.md",
+      "latest_date": "2026-04-09"
     },
     {
       "topic_id": "apple_products",
@@ -62,8 +62,8 @@
       "slug": "apple_products",
       "has_today_article": true,
       "today_article": "2026-04-08-apple-upgrade-priority.md",
-      "latest_article": "2026-04-08-apple-upgrade-priority.md",
-      "latest_date": "2026-04-08"
+      "latest_article": "2026-04-09-ipad-or-mac-first.md",
+      "latest_date": "2026-04-09"
     },
     {
       "topic_id": "tennis_menu",
@@ -72,8 +72,8 @@
       "slug": "tennis_menu",
       "has_today_article": true,
       "today_article": "2026-04-08-weekly-plan.md",
-      "latest_article": "2026-04-08-weekly-plan.md",
-      "latest_date": "2026-04-08"
+      "latest_article": "2026-04-09-30minute-menu.md",
+      "latest_date": "2026-04-09"
     }
   ],
   "missing_topic_ids": []
