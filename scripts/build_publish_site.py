@@ -455,21 +455,6 @@ def build_related_articles(articles: list[Article]) -> None:
 
 
 def build_infographic_panel(group: dict[str, object], article: Article) -> str:
-    stat_items = [
-        ("Reading", f"{article.reading_minutes} min"),
-        ("Sections", str(max(1, len(article.section_labels)))),
-        ("Sources", str(len(article.source_links))),
-        ("Updated", article.updated_label),
-    ]
-    stats = "".join(
-        f"""
-<div class="info-stat">
-  <span>{html.escape(label)}</span>
-  <strong>{html.escape(value)}</strong>
-</div>
-"""
-        for label, value in stat_items
-    )
     section_pills = "".join(
         f'<a class="section-pill" href="#{html.escape(article.anchor)}-section-{index + 1}">{html.escape(label)}</a>'
         for index, label in enumerate(article.section_labels)
@@ -485,15 +470,10 @@ def build_infographic_panel(group: dict[str, object], article: Article) -> str:
     )
     return f"""
 <section class="infographic-panel">
-  <div class="info-hero">
-    <div class="info-copy">
-      <div class="info-kicker">{html.escape(str(group['label']))} / ARTICLE MAP</div>
-      <h3>{html.escape(article.title)}</h3>
-      <p>{html.escape(article.summary)}</p>
-    </div>
-    <div class="info-stats">
-      {stats}
-    </div>
+  <div class="info-copy">
+    <div class="info-kicker">{html.escape(str(group['label']))} / ARTICLE MAP</div>
+    <h3>{html.escape(article.title)}</h3>
+    <p>{html.escape(article.summary)}</p>
   </div>
   <div class="insight-grid">
     {highlights}
@@ -1143,18 +1123,15 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       border: 1px solid rgba(19,33,45,.08);
       box-shadow: var(--shadow);
     }}
-    .info-hero {{
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-      margin-bottom: 14px;
-    }}
     .info-kicker {{
       font-size: 0.76rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--accent-2);
       margin-bottom: 10px;
+    }}
+    .info-copy {{
+      margin-bottom: 14px;
     }}
     .info-copy h3 {{
       margin: 0 0 8px;
@@ -1165,30 +1142,6 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       margin: 0;
       color: var(--muted);
       line-height: 1.8;
-    }}
-    .info-stats {{
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }}
-    .info-stat {{
-      padding: 12px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.88);
-      border: 1px solid var(--line);
-    }}
-    .info-stat span {{
-      display: block;
-      color: var(--muted);
-      font-size: 0.74rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }}
-    .info-stat strong {{
-      display: block;
-      font-size: 1rem;
-      line-height: 1.25;
     }}
     .insight-grid {{
       display: grid;
@@ -1398,9 +1351,6 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       .article-grid {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
-      }}
-      .info-hero {{
-        grid-template-columns: 1.3fr 0.9fr;
       }}
       .insight-grid {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
