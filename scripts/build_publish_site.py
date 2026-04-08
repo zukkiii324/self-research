@@ -35,6 +35,8 @@ class Article:
     title: str
     summary: str
     rendered: str
+    section_labels: list[str]
+    highlight_points: list[str]
     date_label: str
     reading_minutes: int
     word_count: int
@@ -65,7 +67,11 @@ def render_markdown(path: Path) -> str:
 def article_summary(md_path: Path) -> str:
     lines = [line.strip() for line in md_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     body_lines = [line for line in lines if not line.startswith("#")]
-    summary = " ".join(body_lines[:3]).strip()
+    cleaned_lines = [
+        re.sub(r"^[\-\*\d\.\)\s]+", "", line).strip()
+        for line in body_lines[:3]
+    ]
+    summary = re.sub(r"\s+", " ", " ".join(cleaned_lines)).strip()
     return summary[:170] + ("…" if len(summary) > 170 else "")
 
 
@@ -104,6 +110,38 @@ def article_slide_points(md_path: Path) -> list[str]:
         if len(points) == 3:
             break
     return points or ["記事の要点を短時間でつかめる補足スライドです。"]
+
+
+def article_section_labels(md_path: Path) -> list[str]:
+    labels: list[str] = []
+    for line in md_path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("##"):
+            continue
+        cleaned = stripped.lstrip("#").strip()
+        if not cleaned or cleaned == "参考":
+            continue
+        labels.append(cleaned)
+    return labels[:6]
+
+
+def article_highlight_points(md_path: Path) -> list[str]:
+    points: list[str] = []
+    for line in md_path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if stripped.startswith(("- ", "* ")):
+            cleaned = stripped[2:].strip()
+            if cleaned and len(cleaned) >= 6:
+                points.append(cleaned[:46] + ("…" if len(cleaned) > 46 else ""))
+        elif re.match(r"^\d+\.\s+", stripped):
+            cleaned = re.sub(r"^\d+\.\s+", "", stripped).strip()
+            if cleaned and len(cleaned) >= 6:
+                points.append(cleaned[:46] + ("…" if len(cleaned) > 46 else ""))
+        if len(points) >= 4:
+            break
+    if not points:
+        points = article_slide_points(md_path)
+    return points[:4]
 
 
 def article_date_label(path: Path) -> str:
@@ -173,6 +211,11 @@ def normalize_reference_line(line: str) -> tuple[str, list[str]]:
     stripped = line.strip()
     if not stripped:
         return line, []
+    markdown_match = re.match(r"^[-*]\s+\[([^\]]+)\]\((https?://[^)]+)\)\s*$", stripped)
+    if markdown_match:
+        label = markdown_match.group(1).strip()
+        url = markdown_match.group(2).strip()
+        return f"- [{label}]({url})", [url]
     url_match = re.search(r"https?://[^\s)>\"]+", stripped)
     if not url_match:
         return line, []
@@ -409,6 +452,66 @@ def build_related_articles(articles: list[Article]) -> None:
             scored.append((overlap, candidate))
         scored.sort(key=lambda item: (item[0], item[1].date_label), reverse=True)
         article.related_articles = [(item.anchor, item.title) for _, item in scored[:3] if _ > 0]
+
+
+def build_infographic_panel(group: dict[str, object], article: Article) -> str:
+    stat_items = [
+        ("Reading", f"{article.reading_minutes} min"),
+        ("Sections", str(max(1, len(article.section_labels)))),
+        ("Sources", str(len(article.source_links))),
+        ("Updated", article.updated_label),
+    ]
+    stats = "".join(
+        f"""
+<div class="info-stat">
+  <span>{html.escape(label)}</span>
+  <strong>{html.escape(value)}</strong>
+</div>
+"""
+        for label, value in stat_items
+    )
+    section_pills = "".join(
+        f'<a class="section-pill" href="#{html.escape(article.anchor)}-section-{index + 1}">{html.escape(label)}</a>'
+        for index, label in enumerate(article.section_labels)
+    ) or '<span class="section-pill muted">本文の構成は本文中で確認</span>'
+    highlights = "".join(
+        f"""
+<div class="insight-card">
+  <div class="insight-index">{index}</div>
+  <p>{html.escape(point)}</p>
+</div>
+"""
+        for index, point in enumerate(article.highlight_points, start=1)
+    )
+    return f"""
+<section class="infographic-panel">
+  <div class="info-hero">
+    <div class="info-copy">
+      <div class="info-kicker">{html.escape(str(group['label']))} / ARTICLE MAP</div>
+      <h3>{html.escape(article.title)}</h3>
+      <p>{html.escape(article.summary)}</p>
+    </div>
+    <div class="info-stats">
+      {stats}
+    </div>
+  </div>
+  <div class="insight-grid">
+    {highlights}
+  </div>
+  <div class="section-pills">
+    {section_pills}
+  </div>
+</section>
+"""
+
+
+def add_section_anchors(rendered_html: str, article: Article) -> str:
+    output = rendered_html
+    for index, label in enumerate(article.section_labels, start=1):
+        pattern = f"<h2>{html.escape(label)}</h2>"
+        replacement = f'<h2 id="{html.escape(article.anchor)}-section-{index}">{html.escape(label)}</h2>'
+        output = output.replace(pattern, replacement, 1)
+    return output
 
 
 def page_shell(title: str, body: str, extra_head: str = "") -> str:
@@ -1050,6 +1153,112 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       border-bottom: 1px solid var(--line);
       padding-bottom: 18px;
     }}
+    .infographic-panel {{
+      margin: 0 0 18px;
+      padding: 16px;
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,243,234,0.9)),
+        radial-gradient(circle at top right, rgba(29,78,216,.08), transparent 30%);
+      border: 1px solid rgba(19,33,45,.08);
+      box-shadow: var(--shadow);
+    }}
+    .info-hero {{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }}
+    .info-kicker {{
+      font-size: 0.76rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      margin-bottom: 10px;
+    }}
+    .info-copy h3 {{
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+      line-height: 1.35;
+    }}
+    .info-copy p {{
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.8;
+    }}
+    .info-stats {{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }}
+    .info-stat {{
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.88);
+      border: 1px solid var(--line);
+    }}
+    .info-stat span {{
+      display: block;
+      color: var(--muted);
+      font-size: 0.74rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }}
+    .info-stat strong {{
+      display: block;
+      font-size: 1rem;
+      line-height: 1.25;
+    }}
+    .insight-grid {{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin: 0 0 14px;
+    }}
+    .insight-card {{
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--line);
+    }}
+    .insight-index {{
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }}
+    .insight-card p {{
+      margin: 0;
+      line-height: 1.7;
+    }}
+    .section-pills {{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }}
+    .section-pill {{
+      display: inline-flex;
+      align-items: center;
+      padding: 9px 11px;
+      border-radius: 999px;
+      background: rgba(19,33,45,0.06);
+      border: 1px solid rgba(19,33,45,0.08);
+      font-size: 0.86rem;
+      line-height: 1.4;
+    }}
+    .section-pill.muted {{
+      color: var(--muted);
+    }}
     .article-panel h2 {{
       margin: 0 0 12px;
       font-family: var(--serif);
@@ -1209,6 +1418,12 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       .article-grid {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
+      }}
+      .info-hero {{
+        grid-template-columns: 1.3fr 0.9fr;
+      }}
+      .insight-grid {{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }}
       .filter-pills {{
         width: auto;
@@ -1530,6 +1745,7 @@ def build_group_page(group: dict[str, object], groups: list[dict[str, object]]) 
       <span>{article.reading_minutes} min read</span>
     </div>
   </header>
+  {build_infographic_panel(group, article)}
   <div class="article-body">{article.rendered}</div>
   <div class="source-links">
     <h3>関連記事</h3>
@@ -1625,7 +1841,9 @@ def collect_groups(content_root: Path, out_root: Path) -> list[dict[str, object]
                 anchor=md_path.stem,
                 title=article_title(md_path),
                 summary=article_summary(md_path),
-                rendered=render_markdown(md_path),
+                rendered="",
+                section_labels=article_section_labels(md_path),
+                highlight_points=article_highlight_points(md_path),
                 date_label=article_date_label(md_path),
                 updated_label=article_updated_label(md_path),
                 reading_minutes=reading_minutes(words),
@@ -1635,6 +1853,7 @@ def collect_groups(content_root: Path, out_root: Path) -> list[dict[str, object]
                 source_links=extract_source_links(text),
                 related_articles=[],
             )
+            article.rendered = add_section_anchors(render_markdown(md_path), article)
             slide_svg = render_slide_svg(topic.label, article)
             (slide_dir / f"{md_path.stem}.svg").write_text(slide_svg, encoding="utf-8")
             articles.append(
