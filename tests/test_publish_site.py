@@ -57,8 +57,11 @@ class PublishSiteTest(unittest.TestCase):
             self.assertIn('class="infographic-panel"', html)
             self.assertIn('class="subpanel-grid"', html)
             self.assertIn('class="subpanel-card"', html)
+            self.assertIn('class="category-tools"', html)
+            self.assertIn('class="tool-card"', html)
             self.assertIn('data-toggle-detail', html)
             self.assertIn('class="article-detail"', html)
+            self.assertNotIn('id="article-list"', html)
             self.assertNotIn('class="info-stats"', html)
 
 

@@ -433,6 +433,25 @@ def build_series_path(articles: list[Article]) -> str:
     return "".join(parts)
 
 
+def build_group_overview(group: dict[str, object]) -> str:
+    style = dict(group.get("style_guide") or {})
+    cards = [
+        ("Series", str(style.get("series_name") or group["label"])),
+        ("For", str(group.get("target_reader") or "")),
+        ("Angle", str(style.get("heading_pattern") or group.get("tone") or "")),
+    ]
+    return "".join(
+        f"""
+<div class="overview-card">
+  <div class="overview-kicker">{html.escape(label)}</div>
+  <p>{html.escape(value)}</p>
+</div>
+"""
+        for label, value in cards
+        if value
+    )
+
+
 def token_set(text: str) -> set[str]:
     return {token.lower() for token in re.findall(r"[A-Za-z0-9\u3040-\u30ff\u3400-\u9fff]{2,}", text)}
 
@@ -484,7 +503,7 @@ def build_infographic_panel(group: dict[str, object], article: Article) -> str:
   <div class="info-top">
     <div class="info-copy">
       <div class="info-kicker">{html.escape(str(group['label']))} / ARTICLE MAP</div>
-      <h3>{html.escape(article.title)}</h3>
+      <h3>この記事でつかめること</h3>
       <p>{html.escape(article.summary)}</p>
     </div>
     <div class="article-actions">
@@ -1116,6 +1135,59 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       border-top: 1px solid var(--line);
       line-height: 1.6;
     }}
+    .category-tools {{
+      display: grid;
+      gap: 14px;
+      margin: 8px 0 18px;
+    }}
+    .category-tools-grid {{
+      display: grid;
+      gap: 12px;
+    }}
+    .tool-card {{
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }}
+    .tool-card h2,
+    .tool-card h3 {{
+      margin: 0 0 10px;
+      font-size: 1rem;
+    }}
+    .tool-card p {{
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 0.94rem;
+    }}
+    .tool-pills {{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }}
+    .tool-pill {{
+      display: inline-flex;
+      align-items: center;
+      padding: 9px 11px;
+      border-radius: 999px;
+      background: rgba(19,33,45,0.06);
+      border: 1px solid rgba(19,33,45,0.08);
+      font-size: 0.86rem;
+      line-height: 1.4;
+    }}
+    .tool-list {{
+      display: grid;
+      gap: 8px;
+    }}
+    .tool-list a {{
+      display: block;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+      line-height: 1.6;
+    }}
     .page-main {{
       display: grid;
       gap: 18px;
@@ -1471,6 +1543,9 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
       }}
+      .category-tools-grid {{
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }}
       .insight-grid {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }}
@@ -1493,13 +1568,9 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
         gap: 22px;
       }}
       .page-layout {{
-        grid-template-columns: 320px minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr);
         gap: 22px;
         padding: 12px 0 70px;
-      }}
-      .side-stack {{
-        position: sticky;
-        top: 84px;
       }}
       .hero-main {{
         min-height: 390px;
@@ -1780,22 +1851,21 @@ refreshCards();
 
 
 def build_group_page(group: dict[str, object], groups: list[dict[str, object]]) -> str:
-    links = "".join(
-        f'<a href="#{html.escape(article.anchor)}">{html.escape(article.title)}</a>'
-        for article in group["articles"]
+    latest_article = list(group["articles"])[0]
+    reading_path = "".join(
+        f'<a href="#{html.escape(article.anchor)}">{html.escape(article.date_label)} | {html.escape(article.title)}</a>'
+        for article in list(group["articles"])[:4]
+    )
+    article_jump = "".join(
+        f'<a class="tool-pill" href="#{html.escape(article.anchor)}">{html.escape(article.date_label)}</a>'
+        for article in list(group["articles"])[:8]
     )
     articles = "".join(
         f"""
 <article id="{html.escape(article.anchor)}" class="article-panel">
-  <div class="tag">{html.escape(str(group['label']))}</div>
   <header>
+    <div class="tag">{html.escape(article.date_label)}</div>
     <h2>{html.escape(article.title)}</h2>
-    <div class="article-bottom">
-      <span>{html.escape(article.date_label)}</span>
-      <span>updated {html.escape(article.updated_label)}</span>
-      <span>{article.word_count} words</span>
-      <span>{article.reading_minutes} min read</span>
-    </div>
   </header>
   {build_infographic_panel(group, article)}
   <div class="article-detail" id="{html.escape(article.anchor)}-detail" hidden>
@@ -1810,7 +1880,7 @@ def build_group_page(group: dict[str, object], groups: list[dict[str, object]]) 
         for article in group["articles"]
     )
     other_groups = "".join(
-        f'<li><a href="../{html.escape(str(other["slug"]))}/">{html.escape(str(other["label"]))}</a></li>'
+        f'<a class="tool-pill" href="../{html.escape(str(other["slug"]))}/">{html.escape(str(other["label"]))}</a>'
         for other in groups
         if other["slug"] != group["slug"]
     )
@@ -1830,42 +1900,49 @@ def build_group_page(group: dict[str, object], groups: list[dict[str, object]]) 
             <span class="topic-pill">{html.escape(str(group['tone']))}</span>
             <span class="topic-pill">{len(group['articles'])} articles</span>
           </div>
+          <div class="quick-links">
+            <a href="#latest-article">最新記事へ</a>
+            <a href="#category-tools">カテゴリナビへ</a>
+          </div>
         </div>
       </div>
-      <aside class="hero-side panel">
-        <div class="highlight-list">
-          <a class="highlight-card" href="../">
-            <span>Home</span>
-            トップページへ戻る
-          </a>
-          <a class="highlight-card" href="#article-list">
-            <span>Index</span>
-            このカテゴリの記事一覧を見る
-          </a>
+    </div>
+  </section>
+  <section class="category-tools" id="category-tools">
+    <div class="category-tools-grid">
+      <div class="tool-card">
+        <h2>まず読むなら</h2>
+        <p>最初の1本は、最新の記事から入ると流れを追いやすくなります。</p>
+        <div class="tool-list">
+          <a href="#{html.escape(latest_article.anchor)}">{html.escape(latest_article.date_label)} | {html.escape(latest_article.title)}</a>
         </div>
-      </aside>
+      </div>
+      <div class="tool-card">
+        <h3>この順で読む</h3>
+        <p>カテゴリ全体を短時間でつかむためのおすすめ順です。</p>
+        <div class="tool-list">{reading_path}</div>
+      </div>
+      <div class="tool-card">
+        <h3>他カテゴリへ移動</h3>
+        <p>テーマを横断して読みたいときの入口です。</p>
+        <div class="tool-pills">{other_groups}</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <h3>記事ジャンプ</h3>
+      <p>日付単位で見たい記事に直接移動できます。</p>
+      <div class="tool-pills">{article_jump}</div>
     </div>
   </section>
   <section class="page-layout">
-    <aside class="side-stack">
-      <div class="side-card">
-        <h2>このカテゴリについて</h2>
-        <p>{html.escape(str(group['description']))}</p>
-      </div>
-      <div class="side-card">
-        <h3>この順で読む</h3>
-        <ul>{build_series_path(list(group["articles"]))}</ul>
-      </div>
-      <div class="side-card">
-        <h3>ほかのカテゴリ</h3>
-        <ul>{other_groups}</ul>
-      </div>
-      <div class="side-card" id="article-list">
-        <h3>記事一覧</h3>
-        <nav>{links}</nav>
-      </div>
-    </aside>
     <div class="page-main">
+      <div class="section-head" id="latest-article">
+        <div>
+          <div class="eyebrow">Archive</div>
+          <h2>新しい記事から読む</h2>
+        </div>
+        <p>このカテゴリ内では新しい記事を上に並べています。必要な日付の記事までそのまま下へ辿れます。</p>
+      </div>
       {articles}
     </div>
   </section>
