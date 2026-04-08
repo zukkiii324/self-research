@@ -1072,6 +1072,31 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
     .page-hero {{
       padding: 18px 0 12px;
     }}
+    .collection-overview {{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }}
+    .overview-card {{
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }}
+    .overview-kicker {{
+      margin-bottom: 8px;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+    }}
+    .overview-card p {{
+      margin: 0;
+      line-height: 1.72;
+      color: #24313c;
+    }}
     .breadcrumbs {{
       display: flex;
       gap: 8px;
@@ -1114,6 +1139,62 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       color: var(--muted);
       line-height: 1.8;
       font-size: 0.95rem;
+    }}
+    .hero-side-compact {{
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }}
+    .hero-side-compact h2 {{
+      margin: 0;
+      font-size: 1.15rem;
+    }}
+    .hero-side-compact p {{
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.8;
+    }}
+    .hero-latest {{
+      display: block;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid var(--line);
+    }}
+    .hero-latest span {{
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+    }}
+    .hero-latest strong {{
+      display: block;
+      line-height: 1.5;
+      font-size: 1rem;
+    }}
+    .hero-actions {{
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }}
+    .hero-action {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.7);
+      color: var(--ink);
+      font-size: 0.92rem;
+    }}
+    .hero-action.primary {{
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
     }}
     .side-card nav a {{
       display: block;
@@ -1215,8 +1296,7 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
     }}
     .article-panel header {{
       margin-bottom: 18px;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 18px;
+      padding-bottom: 6px;
     }}
     .infographic-panel {{
       margin: 0 0 18px;
@@ -1515,6 +1595,9 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       .page-layout {{
         grid-template-columns: 1fr;
       }}
+      .collection-overview {{
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }}
       .hero-main,
       .hero-side,
       .side-card,
@@ -1544,7 +1627,7 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
         gap: 16px;
       }}
       .category-tools-grid {{
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }}
       .insight-grid {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1852,13 +1935,10 @@ refreshCards();
 
 def build_group_page(group: dict[str, object], groups: list[dict[str, object]]) -> str:
     latest_article = list(group["articles"])[0]
+    style = dict(group.get("style_guide") or {})
     reading_path = "".join(
         f'<a href="#{html.escape(article.anchor)}">{html.escape(article.date_label)} | {html.escape(article.title)}</a>'
         for article in list(group["articles"])[:4]
-    )
-    article_jump = "".join(
-        f'<a class="tool-pill" href="#{html.escape(article.anchor)}">{html.escape(article.date_label)}</a>'
-        for article in list(group["articles"])[:8]
     )
     articles = "".join(
         f"""
@@ -1900,38 +1980,40 @@ def build_group_page(group: dict[str, object], groups: list[dict[str, object]]) 
             <span class="topic-pill">{html.escape(str(group['tone']))}</span>
             <span class="topic-pill">{len(group['articles'])} articles</span>
           </div>
-          <div class="quick-links">
-            <a href="#latest-article">最新記事へ</a>
-            <a href="#category-tools">カテゴリナビへ</a>
-          </div>
         </div>
       </div>
+      <aside class="hero-side panel hero-side-compact">
+        <div>
+          <div class="eyebrow">Start Here</div>
+          <h2>まずは入口を1つに絞る</h2>
+        </div>
+        <a class="hero-latest" href="#{html.escape(latest_article.anchor)}">
+          <span>Latest article</span>
+          <strong>{html.escape(latest_article.title)}</strong>
+        </a>
+        <p>{html.escape(str(style.get('series_name') or group['label']))}</p>
+        <div class="hero-actions">
+          <a class="hero-action primary" href="#{html.escape(latest_article.anchor)}">最新記事から読む</a>
+          <a class="hero-action" href="#category-tools">読む順を見る</a>
+        </div>
+      </aside>
+    </div>
+    <div class="collection-overview">
+      {build_group_overview(group)}
     </div>
   </section>
   <section class="category-tools" id="category-tools">
     <div class="category-tools-grid">
       <div class="tool-card">
-        <h2>まず読むなら</h2>
-        <p>最初の1本は、最新の記事から入ると流れを追いやすくなります。</p>
-        <div class="tool-list">
-          <a href="#{html.escape(latest_article.anchor)}">{html.escape(latest_article.date_label)} | {html.escape(latest_article.title)}</a>
-        </div>
-      </div>
-      <div class="tool-card">
-        <h3>この順で読む</h3>
+        <h2>この順で読む</h2>
         <p>カテゴリ全体を短時間でつかむためのおすすめ順です。</p>
         <div class="tool-list">{reading_path}</div>
       </div>
       <div class="tool-card">
-        <h3>他カテゴリへ移動</h3>
+        <h2>他カテゴリへ移動</h2>
         <p>テーマを横断して読みたいときの入口です。</p>
         <div class="tool-pills">{other_groups}</div>
       </div>
-    </div>
-    <div class="tool-card">
-      <h3>記事ジャンプ</h3>
-      <p>日付単位で見たい記事に直接移動できます。</p>
-      <div class="tool-pills">{article_jump}</div>
     </div>
   </section>
   <section class="page-layout">
