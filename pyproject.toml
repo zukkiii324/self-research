@@ -9,6 +9,7 @@ description = "Multi-agent editorial workflow for publishing Note articles"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+    "markdown>=3.7",
     "mkdocs>=1.5",
 ]
 

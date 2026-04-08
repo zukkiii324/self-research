@@ -1,6 +1,6 @@
 # Note Multi-Agent Writing Project
 
-`Note` 向けの記事制作を、複数エージェントの編集組織で進めるローカル向けプロジェクトです。
+`Note Multi-Agent Blog` 向けの記事制作と公開を、複数エージェントの編集組織で進めるローカル向けプロジェクトです。
 
 案件ブリーフを 1 つ投入すると、各エージェントが順番に成果物を作成し、`runs/<timestamp>-<slug>/` 配下に保存します。最終的には `FINAL_ARTICLE.md` に公開直前の原稿を出力します。
 
@@ -12,24 +12,28 @@
 
 ## 想定する役割
 
+- 指揮担当: 課題整理、優先順位付け、進行統率
 - 編集長: 全体方針と品質基準の定義
 - 戦略: 読者設定、切り口、訴求設計
 - リサーチ: 事実確認、参考情報収集、一次情報整理
 - 構成: 見出し設計、論理順、記事の骨組み作成
 - ドラフト: 本文の初稿作成
-- レビュー: 事実性、読みやすさ、論理の穴を指摘
+- 事実レビュー: 根拠、最新性、断定リスクを点検
+- 編集レビュー: 読みやすさ、重複、構成の粗さを点検
 - 最終編集: 文体統一、冗長表現の削除、公開直前の整形
 
 ## 成果物の流れ
 
 1. ブリーフを入力する
-2. 編集長が企画方針を定める
-3. 戦略が狙いを固める
-4. リサーチが材料を整理する
-5. 構成が記事の骨格を作る
-6. ドラフトが本文を書く
-7. レビューが問題点を返す
-8. 最終編集が公開品質に整える
+2. 指揮担当が課題と優先順位を定める
+3. 編集長が企画方針を定める
+4. 戦略が狙いを固める
+5. リサーチが材料を整理する
+6. 構成が記事の骨格を作る
+7. ドラフトが本文を書く
+8. 事実レビューが根拠の穴を返す
+9. 編集レビューが可読性と重複を返す
+10. 最終編集が公開品質に整える
 
 ## 出力先
 
@@ -37,19 +41,28 @@
 
 ```text
 runs/<timestamp>-<slug>/
-  01-editor_in_chief/
+  01-command_lead/
     prompt.md
     response.md
-  02-strategy/
+  02-editor_in_chief/
+    prompt.md
+    response.md
+  03-strategy/
     prompt.md
     response.md
   ...
-  07-final_edit/
+  08-editorial_review/
+    prompt.md
+    response.md
+  09-final_edit/
     prompt.md
     response.md
   snapshots/
     brief.json
     team.json
+  ISSUE_BOARD.md
+  QUALITY_GATE_REPORT.md
+  SCORECARD.md
   FINAL_ARTICLE.md
   RUN_SUMMARY.md
   manifest.json
@@ -113,43 +126,30 @@ python3 run_note_team.py run \
 - [実行フロー](docs/workflow.md)
 - [出力フォーマット](docs/output-format.md)
 
-## noteへの自動投稿準備
+## ブログの自動公開
 
-1. 依存ライブラリをインストールします（Playwrightとブラウザ）:
-
-   ```bash
-   pip install playwright
-   playwright install chromium
-   ```
-
-2. `queues/drafts/` にある JSON を `scripts/publish_note_draft.py` で読み、noteのUIを操作して下書き保存します。
-
-   - 環境変数 `NOTE_EMAIL` / `NOTE_PASSWORD` を設定
-   - `NOTE_PREVIEW_URL` などは今のところ不要（将来の追加で対応可能）
-   - `--headless` でヘッドレス実行
+1. `scripts/build_publish_site.py` を使い、`content/` 配下の Markdown から `publish_site/` を再生成します。
 
    ```bash
-   NOTE_EMAIL=xxx NOTE_PASSWORD=yyy python3 scripts/publish_note_draft.py
+   python3 scripts/build_publish_site.py
    ```
 
-3. 成功すると `queues/drafts/*.json` が `status=draft_created` に更新され、`note_url` に保存先が入ります。
+2. GitHub Actions (`.github/workflows/deploy_static_blog.yml`) は `publish_site/` を `gh-pages` ブランチへ配信します。`content/` と公開生成ロジックの変更が、自動で公開面へ反映されます。
 
-4. 一度にたくさん予約したい場合は `scripts/stage_note_draft.py` で JSON をためておき、スクリプトを定期的に呼び出します。
+3. `.github/workflows/automation_cycle.yml` は 4時間ごとに `autopilot` を実行し、`content/` と `publish_site/` を更新して `main` へ commit します。
 
-**補足:** noteのUIは変更されやすいため、`scripts/publish_note_draft.py` のセレクター（タイトル・本文・タグ・下書き保存ボタン）は適宜更新してください。自動化が失敗したら `HEADLESS=false` で起動して手動トレースをすると原因がわかりやすいです。
+4. GitHub Pages 側の設定（Settings → Pages で `gh-pages` ブランチをソース指定）を行えば、`Note Multi-Agent Blog` が継続的に更新されます。
 
-## 静的ブログの自動公開
+## 公開対象テーマ
 
-1. `scripts/build_static_blog.py` を使い、`content/` 配下の Markdown を `static_blog_site/docs/` にコピー＋`index.md` を再生成します。
+現在の公開対象カテゴリは次です。
 
-   ```bash
-   python3 scripts/build_static_blog.py
-   ```
+- `ベビー`
+- `Gemini / GPT / Claude比較`
+- `Claude活用`
+- `業界別DX・AI導入事例ウォッチ`
+- `防災DX`
+- `Apple製品`
+- `テニス練習メニュー`
 
-2. `mkdocs` によるビルドは GitHub Actions (`.github/workflows/deploy_static_blog.yml`) が担い、`site` ディレクトリを生成して `peaceiris/actions-gh-pages` で `gh-pages` ブランチへデプロイします。
-
-3. `static_blog_site/mkdocs.yml` にデフォルトテーマを定義しています。必要があれば `theme:` や `extra:` を調整してください。
-
-4. GitHub Pages 側の設定（リポジトリの Settings → Pages で `gh-pages` ブランチをソース指定）を行えば、push するだけで自動公開されるようになります。
-
-5. GitHub リモートがない場合は、`git init` → リモートを追加（例: `git remote add origin git@github.com:<user>/note-test.git`）→ `git push -u origin main` の流れで初回公開してください。
+`scripts/check_daily_theme_coverage.py` は、公開対象テーマについて `今日の記事があるか` を毎日点検し、`automation/daily_coverage/` にレポートを保存します。

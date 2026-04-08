@@ -47,6 +47,9 @@ class WorkflowRunnerTest(unittest.TestCase):
             final_text = (run_dir / "FINAL_ARTICLE.md").read_text(encoding="utf-8")
             self.assertIn("判断軸", final_text)
             self.assertTrue((run_dir / "RUN_SUMMARY.md").exists())
+            self.assertTrue((run_dir / "ISSUE_BOARD.md").exists())
+            self.assertTrue((run_dir / "QUALITY_GATE_REPORT.md").exists())
+            self.assertTrue((run_dir / "SCORECARD.md").exists())
 
     def test_sample_brief_format_is_supported(self) -> None:
         runner = WorkflowRunner(
@@ -63,8 +66,8 @@ class WorkflowRunnerTest(unittest.TestCase):
             )
 
             self.assertTrue((run_dir / "FINAL_ARTICLE.md").exists())
-            self.assertTrue((run_dir / "01-editor_in_chief" / "prompt.md").exists())
-            self.assertTrue((run_dir / "07-final_edit" / "response.md").exists())
+            self.assertTrue((run_dir / "01-command_lead" / "prompt.md").exists())
+            self.assertTrue((run_dir / "09-final_edit" / "response.md").exists())
 
 
 if __name__ == "__main__":

@@ -41,12 +41,23 @@
       "profile_overrides": {
         "editor_in_chief": "deep_research",
         "research": "deep_research",
-        "review": "deep_research",
+        "fact_review": "deep_research",
+        "editorial_review": "deep_research",
         "final_edit": "deep_research"
       }
     }
   ],
   "agents": [
+    {
+      "id": "command_lead",
+      "name": "指揮担当",
+      "department": "Program",
+      "mission": "記事制作全体の課題を整理し、優先度と責任分担を定めて進行を統率する。",
+      "prompt_path": "prompts/command_lead.md",
+      "deliverable": "課題管理と進行指示メモ",
+      "dependencies": [],
+      "model_profile": "deep_research"
+    },
     {
       "id": "editor_in_chief",
       "name": "編集長",
@@ -54,7 +65,9 @@
       "mission": "記事の勝ち筋、論点、品質基準を定義する。",
       "prompt_path": "prompts/editor_in_chief.md",
       "deliverable": "企画方針書",
-      "dependencies": [],
+      "dependencies": [
+        "command_lead"
+      ],
       "model_profile": "balanced"
     },
     {
@@ -65,6 +78,7 @@
       "prompt_path": "prompts/strategy.md",
       "deliverable": "読者戦略メモ",
       "dependencies": [
+        "command_lead",
         "editor_in_chief"
       ],
       "model_profile": "fast_planning"
@@ -77,6 +91,7 @@
       "prompt_path": "prompts/research.md",
       "deliverable": "リサーチ計画",
       "dependencies": [
+        "command_lead",
         "editor_in_chief",
         "strategy"
       ],
@@ -90,6 +105,7 @@
       "prompt_path": "prompts/outline.md",
       "deliverable": "記事構成案",
       "dependencies": [
+        "command_lead",
         "editor_in_chief",
         "strategy",
         "research"
@@ -104,6 +120,7 @@
       "prompt_path": "prompts/draft.md",
       "deliverable": "記事初稿",
       "dependencies": [
+        "command_lead",
         "editor_in_chief",
         "strategy",
         "research",
@@ -112,13 +129,14 @@
       "model_profile": "balanced"
     },
     {
-      "id": "review",
-      "name": "レビュー担当",
+      "id": "fact_review",
+      "name": "事実レビュー担当",
       "department": "Quality",
-      "mission": "論理、読みやすさ、Noteらしさ、表現リスクをレビューする。",
-      "prompt_path": "prompts/review.md",
-      "deliverable": "レビュー指摘書",
+      "mission": "事実性、根拠、鮮度、品質ゲート充足をレビューする。",
+      "prompt_path": "prompts/fact_review.md",
+      "deliverable": "事実レビュー指摘書",
       "dependencies": [
+        "command_lead",
         "editor_in_chief",
         "strategy",
         "research",
@@ -128,6 +146,23 @@
       "model_profile": "deep_research"
     },
     {
+      "id": "editorial_review",
+      "name": "編集レビュー担当",
+      "department": "Quality",
+      "mission": "構成、重複、読みやすさ、スタイルガイド準拠をレビューする。",
+      "prompt_path": "prompts/editorial_review.md",
+      "deliverable": "編集レビュー指摘書",
+      "dependencies": [
+        "command_lead",
+        "editor_in_chief",
+        "strategy",
+        "research",
+        "outline",
+        "draft"
+      ],
+      "model_profile": "balanced"
+    },
+    {
       "id": "final_edit",
       "name": "最終編集担当",
       "department": "Publishing",
@@ -135,12 +170,14 @@
       "prompt_path": "prompts/final_edit.md",
       "deliverable": "公開用最終稿",
       "dependencies": [
+        "command_lead",
         "editor_in_chief",
         "strategy",
         "research",
         "outline",
         "draft",
-        "review"
+        "fact_review",
+        "editorial_review"
       ],
       "model_profile": "polish"
     }

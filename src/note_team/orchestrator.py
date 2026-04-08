@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -181,6 +183,13 @@ class WorkflowRunner:
         manifest_path = run_dir / "manifest.json"
         manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
+        issue_board_path = run_dir / "ISSUE_BOARD.md"
+        issue_board_path.write_text(self._build_issue_board(brief, manifest, stage_results), encoding="utf-8")
+        quality_gate_path = run_dir / "QUALITY_GATE_REPORT.md"
+        quality_gate_path.write_text(self._build_quality_gate_report(brief, final_stage.response_text), encoding="utf-8")
+        scorecard_path = run_dir / "SCORECARD.md"
+        scorecard_path.write_text(self._build_scorecard(brief, final_stage.response_text), encoding="utf-8")
+
         summary_path = run_dir / "RUN_SUMMARY.md"
         summary_lines = [
             f"# {self.workflow_config.name}",
@@ -199,5 +208,117 @@ class WorkflowRunner:
                 f" / {stage.get('model') or 'default'}"
                 f" / {stage.get('reasoning_effort') or 'default'}"
             )
+        summary_lines.extend(
+            [
+                "",
+                "## 管理資料",
+                f"- 課題管理表: `{issue_board_path.name}`",
+                f"- 品質ゲート: `{quality_gate_path.name}`",
+                f"- スコアカード: `{scorecard_path.name}`",
+            ]
+        )
         summary_path.write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
         return run_dir
+
+    def _build_issue_board(
+        self,
+        brief: ArticleBrief,
+        manifest: dict[str, Any],
+        stage_results: dict[str, StageResult],
+    ) -> str:
+        command_stage = stage_results.get("command_lead")
+        command_note = command_stage.response_text.strip() if command_stage else "指揮担当の出力はありません。"
+        lines = [
+            f"# ISSUE BOARD: {brief.topic}",
+            "",
+            "## Project Focus",
+            f"- テーマ: {brief.topic}",
+            f"- 目的: {brief.objective}",
+            f"- 読者: {brief.target_reader}",
+            "",
+            "## Command Lead Memo",
+            command_note,
+            "",
+            "## Stage Ownership",
+        ]
+        for stage in manifest["stages"]:
+            lines.append(
+                f"- `{stage['id']}` / {stage['name']}: {stage['deliverable']}"
+            )
+        lines.extend(
+            [
+                "",
+                "## Priority Table",
+                "",
+                "| Priority | Issue | Owner | Target Stage | Status | Close Condition |",
+                "| --- | --- | --- | --- | --- | --- |",
+                "| P0 | 事実誤認、高リスク断定、公開不可の欠陥を残さない | 指揮担当 / リサーチ / レビュー | research / review / final_edit | Open | 一次情報と整合し、レビューで重大指摘が解消している |",
+                "| P1 | 既存公開記事との重複や焼き直しを避ける | 指揮担当 / 戦略 / レビュー | strategy / review | Open | 既存記事との差分が brief と review に明記されている |",
+                "| P1 | 記事の狙いと読者価値を冒頭で明確にする | 指揮担当 / 編集長 / 構成 | editor_in_chief / outline | Open | 導入と見出しだけで読む価値が伝わる |",
+                "| P2 | 本文の冗長さを抑え、セクション重複を減らす | ドラフト / 最終編集 | draft / final_edit | Open | 同じ論点の言い換え反復がない |",
+                "| P2 | 公開後に参照しやすいソース導線を残す | リサーチ / 最終編集 | research / final_edit | Open | ソースリンクや参考情報が読者から辿れる |",
+            ]
+        )
+        return "\n".join(lines) + "\n"
+
+    def _build_quality_gate_report(self, brief: ArticleBrief, final_text: str) -> str:
+        gates = brief.extra.get("quality_gates", {}) if isinstance(brief.extra, dict) else {}
+        max_duplicate = float(gates.get("max_duplicate_overlap", 0.58))
+        min_sources = int(gates.get("min_reference_links", 2))
+        max_summary_length = int(gates.get("max_summary_length", 170))
+        min_primary_ratio = float(gates.get("min_primary_source_ratio", 0.5))
+        forbid_duplicate_headings = bool(gates.get("forbid_duplicate_headings", True))
+
+        source_links = re.findall(r"https?://[^\s)>\"]+", final_text)
+        source_count = len(set(link.rstrip(".,]") for link in source_links))
+        summary_candidate = " ".join(
+            line.strip() for line in final_text.splitlines() if line.strip() and not line.strip().startswith("#")
+        )[: max_summary_length + 40]
+        headings = [line.lstrip("#").strip() for line in final_text.splitlines() if line.strip().startswith("##")]
+        duplicate_headings = len(headings) != len(set(headings))
+        preferred_domains = [
+            domain for domain in brief.extra.get("preferred_domains", [])
+        ] if isinstance(brief.extra, dict) else []
+        primary_count = 0
+        for link in source_links:
+            host = urllib.parse.urlparse(link).netloc.lower()
+            if any(domain in host for domain in preferred_domains):
+                primary_count += 1
+        primary_ratio = (primary_count / source_count) if source_count else 0.0
+
+        checks = [
+            ("重複スコア上限", f"<= {max_duplicate:.2f}", "brief 生成時に判定", "pass"),
+            ("参考リンク数", f">= {min_sources}", str(source_count), "pass" if source_count >= min_sources else "fail"),
+            ("一次情報比率", f">= {min_primary_ratio:.2f}", f"{primary_ratio:.2f}", "pass" if primary_ratio >= min_primary_ratio else "fail"),
+            ("要約長上限", f"<= {max_summary_length}", str(len(summary_candidate)), "pass" if len(summary_candidate) <= max_summary_length else "fail"),
+            ("見出し重複禁止", "true", "duplicate" if duplicate_headings else "clean", "fail" if forbid_duplicate_headings and duplicate_headings else "pass"),
+        ]
+
+        lines = [
+            f"# QUALITY GATE REPORT: {brief.topic}",
+            "",
+            "| Gate | Target | Measured | Status |",
+            "| --- | --- | --- | --- |",
+        ]
+        for name, target, measured, status in checks:
+            lines.append(f"| {name} | {target} | {measured} | {status} |")
+        return "\n".join(lines) + "\n"
+
+    def _build_scorecard(self, brief: ArticleBrief, final_text: str) -> str:
+        source_links = re.findall(r"https?://[^\s)>\"]+", final_text)
+        headings = [line for line in final_text.splitlines() if line.startswith("##")]
+        scores = {
+            "正確性": 5 if len(source_links) >= 3 else 4 if len(source_links) >= 2 else 2,
+            "独自性": 4 if "差分" in json.dumps(brief.to_dict(), ensure_ascii=False) or "重複回避" in final_text else 3,
+            "可読性": 5 if 3 <= len(headings) <= 8 else 3,
+            "公開完成度": 5 if "## 参考" in final_text else 3,
+        }
+        lines = [
+            f"# SCORECARD: {brief.topic}",
+            "",
+            "| 項目 | Score | Note |",
+            "| --- | --- | --- |",
+        ]
+        for key, value in scores.items():
+            lines.append(f"| {key} | {value}/5 | 自動評価による暫定スコア |")
+        return "\n".join(lines) + "\n"

@@ -1,0 +1,80 @@
+{
+  "date": "2026-04-08",
+  "generated_at": "2026-04-08T10:58:04.324459",
+  "published_topic_count": 7,
+  "completed_topic_count": 7,
+  "missing_topic_count": 0,
+  "topics": [
+    {
+      "topic_id": "baby",
+      "label": "ベビー",
+      "output_dir": "2026-04-baby-week1",
+      "slug": "baby",
+      "has_today_article": true,
+      "today_article": "2026-04-08-6month-milestone-check.md",
+      "latest_article": "2026-04-08-6month-milestone-check.md",
+      "latest_date": "2026-04-08"
+    },
+    {
+      "topic_id": "ai_practical",
+      "label": "Gemini / GPT / Claude比較",
+      "output_dir": "2026-04-week1",
+      "slug": "ai_practical",
+      "has_today_article": true,
+      "today_article": "2026-04-08-selection-matrix.md",
+      "latest_article": "2026-04-08-selection-matrix.md",
+      "latest_date": "2026-04-08"
+    },
+    {
+      "topic_id": "claude",
+      "label": "Claude活用",
+      "output_dir": "2026-04-claude-week1",
+      "slug": "claude",
+      "has_today_article": true,
+      "today_article": "2026-04-08-claude-projects-research.md",
+      "latest_article": "2026-04-08-claude-projects-research.md",
+      "latest_date": "2026-04-08"
+    },
+    {
+      "topic_id": "industry_dx_ai_watch",
+      "label": "業界別DX・AI導入事例ウォッチ",
+      "output_dir": "2026-04-industry-dx-ai-watch-week1",
+      "slug": "industry_dx_ai_watch",
+      "has_today_article": true,
+      "today_article": "2026-04-08-telecommunications.md",
+      "latest_article": "2026-04-08-telecommunications.md",
+      "latest_date": "2026-04-08"
+    },
+    {
+      "topic_id": "disaster_dx",
+      "label": "防災DX",
+      "output_dir": "disaster-dx-watch",
+      "slug": "disaster_dx",
+      "has_today_article": true,
+      "today_article": "2026-04-08-citizen-facing-disaster-dx.md",
+      "latest_article": "2026-04-08-citizen-facing-disaster-dx.md",
+      "latest_date": "2026-04-08"
+    },
+    {
+      "topic_id": "apple_products",
+      "label": "Apple製品",
+      "output_dir": "apple-products-watch",
+      "slug": "apple_products",
+      "has_today_article": true,
+      "today_article": "2026-04-08-apple-upgrade-priority.md",
+      "latest_article": "2026-04-08-apple-upgrade-priority.md",
+      "latest_date": "2026-04-08"
+    },
+    {
+      "topic_id": "tennis_menu",
+      "label": "テニス練習メニュー",
+      "output_dir": "tennis-practice-menu",
+      "slug": "tennis_menu",
+      "has_today_article": true,
+      "today_article": "2026-04-08-weekly-plan.md",
+      "latest_article": "2026-04-08-weekly-plan.md",
+      "latest_date": "2026-04-08"
+    }
+  ],
+  "missing_topic_ids": []
+}

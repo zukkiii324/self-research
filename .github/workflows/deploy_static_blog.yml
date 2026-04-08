@@ -1,12 +1,16 @@
-name: Deploy Static Blog
+name: Deploy Publish Site
 
 on:
   push:
     paths:
       - 'content/**'
-      - 'scripts/build_static_blog.py'
-      - 'static_blog_site/**'
+      - 'scripts/build_publish_site.py'
+      - 'config/topic_catalog.json'
+      - 'src/note_team/**'
       - '.github/workflows/deploy_static_blog.yml'
+
+permissions:
+  contents: write
 
 jobs:
   deploy:
@@ -20,15 +24,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mkdocs
-      - name: Build static blog
+          pip install -e .
+      - name: Build publish site
         run: |
-          python scripts/build_static_blog.py
-          mkdocs build --site-dir site --config-file static_blog_site/mkdocs.yml
-      - name: Deploy to GitHub Pages
+          python scripts/build_publish_site.py
+      - name: Deploy publish_site to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
-          publish_dir: ./site
+          publish_dir: ./publish_site
           publish_branch: gh-pages
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'

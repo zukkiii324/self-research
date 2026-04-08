@@ -1,0 +1,55 @@
+name: Automation Cycle
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Run editorial autopilot
+        env:
+          NOTE_TEAM_RUNNER_COMMAND: ${{ secrets.NOTE_TEAM_RUNNER_COMMAND }}
+        run: |
+          if [ -z "$NOTE_TEAM_RUNNER_COMMAND" ]; then
+            echo "NOTE_TEAM_RUNNER_COMMAND is not set"
+            exit 1
+          fi
+          python run_note_team.py autopilot \
+            --catalog config/topic_catalog.json \
+            --team config/note_editorial_team.json \
+            --content-root content \
+            --output-root runs \
+            --mode command \
+            --runner-command "$NOTE_TEAM_RUNNER_COMMAND" \
+            --max-age-hours 8
+      - name: Update daily theme coverage report
+        run: |
+          python scripts/check_daily_theme_coverage.py --date "$(date -u +%F)"
+      - name: Commit generated content
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add content publish_site automation runs
+          git commit -m "Automated editorial cycle"
+          git push

@@ -109,6 +109,7 @@ class MockRunner(BaseRunner):
         model_profile: ModelProfile | None = None,
     ) -> str:
         methods = {
+            "command_lead": self._command_lead,
             "chief_editor": self._chief_editor,
             "editor_in_chief": self._chief_editor,
             "audience_strategist": self._audience_strategist,
@@ -121,6 +122,8 @@ class MockRunner(BaseRunner):
             "draft": self._drafter,
             "reviewer": self._reviewer,
             "review": self._reviewer,
+            "fact_review": self._fact_reviewer,
+            "editorial_review": self._editorial_reviewer,
             "final_editor": self._final_editor,
             "final_edit": self._final_editor,
         }
@@ -133,6 +136,24 @@ class MockRunner(BaseRunner):
             f"- テーマ: {brief.topic}\n"
             f"- 目的: {brief.objective}\n"
             f"- 読者: {brief.target_reader}\n"
+        )
+
+    def _command_lead(self, brief: ArticleBrief, stage_results: dict[str, StageResult]) -> str:
+        return (
+            "# 指揮メモ\n\n"
+            "## ミッション要約\n"
+            f"- テーマ: {brief.topic}\n"
+            f"- 目的: {brief.objective}\n"
+            f"- 読者: {brief.target_reader}\n\n"
+            "## 優先課題\n"
+            "1. 事実性の担保\n"
+            "2. 既存記事との差分の明確化\n"
+            "3. 読後の判断材料を残すこと\n\n"
+            "## 課題管理表\n"
+            "| ID | priority | issue | owner | target_stage | close_condition |\n"
+            "| --- | --- | --- | --- | --- | --- |\n"
+            "| CL-01 | P0 | 事実誤認を残さない | research / fact_review | research / fact_review | 一次情報と矛盾がない |\n"
+            "| CL-02 | P1 | 既存記事との差分を明確にする | strategy / editorial_review | strategy / editorial_review | 既存記事と同じ結論で終わらない |\n"
         )
 
     def _chief_editor(self, brief: ArticleBrief, stage_results: dict[str, StageResult]) -> str:
@@ -238,6 +259,29 @@ class MockRunner(BaseRunner):
             "3. 終盤のCTAを、読者が今日やる行動に寄せて具体化する\n\n"
             "## 公開前チェック\n"
             f"{_bullets(brief.constraints, '断定表現と誤読余地を見直す')}\n"
+        )
+
+    def _fact_reviewer(self, brief: ArticleBrief, stage_results: dict[str, StageResult]) -> str:
+        return (
+            "# 事実レビュー指摘書\n\n"
+            "## 重大な事実リスク\n"
+            "1. 根拠のない断定があれば削る\n"
+            "2. 鮮度が重要な箇所は日付を付ける\n\n"
+            "## 品質ゲート判定\n"
+            "- 参考リンク数: pass\n"
+            "- 一次情報優先: pass\n"
+            "- 重複スコア上限: review needed\n"
+        )
+
+    def _editorial_reviewer(self, brief: ArticleBrief, stage_results: dict[str, StageResult]) -> str:
+        return (
+            "# 編集レビュー指摘書\n\n"
+            "## 読みやすさの問題\n"
+            "1. 同じ説明の言い換えを減らす\n"
+            "2. 各見出しの役割を明確にする\n\n"
+            "## スタイルガイド確認\n"
+            "- CTA が記事末尾にあるか\n"
+            "- 参考の置き方が揃っているか\n"
         )
 
     def _final_editor(self, brief: ArticleBrief, stage_results: dict[str, StageResult]) -> str:

@@ -1,13 +1,15 @@
-# 2026年4月1週目
+# Gemini / GPT / Claude比較
 
-1日1本運用の初週分として、2026年4月9日から2026年4月15日までの7本をまとめました。
+2026年4月1日から2026年4月8日までの8本をまとめました。  
+テーマは、`Gemini` `GPT` `Claude` を「どちらが上か」ではなく、「どの仕事に置くと運用しやすいか」で比較することです。
 
 ## 記事一覧
 
-- `2026-04-09-chatgpt-gemini-claude.md`
-- `2026-04-10-n8n-daily-report.md`
-- `2026-04-11-document-saas-comparison.md`
-- `2026-04-12-threads-30-ideas.md`
-- `2026-04-13-note-free-paid-boundary.md`
-- `2026-04-14-search-title-design.md`
-- `2026-04-15-meeting-minutes-template.md`
+- `2026-04-01-overview.md`
+- `2026-04-02-research-comparison.md`
+- `2026-04-03-writing-comparison.md`
+- `2026-04-04-coding-comparison.md`
+- `2026-04-05-mail-and-meeting.md`
+- `2026-04-06-project-and-context.md`
+- `2026-04-07-team-adoption.md`
+- `2026-04-08-selection-matrix.md`

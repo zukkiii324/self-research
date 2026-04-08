@@ -2,6 +2,11 @@
   "project": "note-multi-agent-article-production",
   "roles": [
     {
+      "id": "command_lead",
+      "title": "Command Lead",
+      "file": "command_lead.md"
+    },
+    {
       "id": "editor_in_chief",
       "title": "Editor in Chief",
       "file": "editor_in_chief.md"
@@ -32,9 +37,24 @@
       "file": "review.md"
     },
     {
+      "id": "fact_review",
+      "title": "Fact Review",
+      "file": "fact_review.md"
+    },
+    {
+      "id": "editorial_review",
+      "title": "Editorial Review",
+      "file": "editorial_review.md"
+    },
+    {
       "id": "final_edit",
       "title": "Final Edit",
       "file": "final_edit.md"
+    },
+    {
+      "id": "designer",
+      "title": "Designer",
+      "file": "designer.md"
     }
   ]
 }

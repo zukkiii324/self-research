@@ -1,0 +1,237 @@
+{
+  "topics": [
+    {
+      "id": "baby",
+      "label": "ベビー",
+      "description": "月齢に合わせて、親の不安をほどく実用記事",
+      "output_dir": "2026-04-baby-week1",
+      "publish": true,
+      "automation_enabled": false,
+      "target_reader": "乳児を育てている保護者",
+      "tone": "安心感があり、断定しすぎない",
+      "style_guide": {
+        "heading_pattern": "不安 -> 観察ポイント -> 今日の行動",
+        "avoid_phrases": ["絶対", "必ず", "普通は"],
+        "reference_style": "公的機関や医療監修を優先する",
+        "cta_style": "今日ひとつだけ観察する項目を決めてください。",
+        "series_name": "月齢別ベビー実務メモ"
+      },
+      "brief_template": {
+        "sections_to_cover": ["今日の不安", "見るべき観察ポイント", "家庭での進め方", "受診や相談の目安"],
+        "angle": "不安を煽らず、家庭で判断しやすい観察軸を整理する"
+      },
+      "quality_gates": {
+        "max_duplicate_overlap": 0.45,
+        "min_reference_links": 2,
+        "min_primary_source_ratio": 0.5,
+        "max_summary_length": 160,
+        "forbid_duplicate_headings": true
+      }
+    },
+    {
+      "id": "ai_practical",
+      "label": "Gemini / GPT / Claude比較",
+      "description": "Gemini、GPT、Claudeを用途別に比較し、実務での使い分けを整理する記事",
+      "output_dir": "2026-04-week1",
+      "publish": true,
+      "automation_enabled": true,
+      "target_reader": "Gemini、GPT、Claudeの違いを把握して運用に組み込みたい実務担当者",
+      "tone": "比較軸が明確で、実務判断に使いやすい",
+      "feed_urls": [
+        "https://news.google.com/rss/search?q=%E7%94%9F%E6%88%90AI+%E6%A5%AD%E5%8B%99%E6%B4%BB%E7%94%A8+when:1d&hl=ja&gl=JP&ceid=JP:ja",
+        "https://news.google.com/rss/search?q=AI+automation+workflow+when:1d&hl=en-US&gl=US&ceid=US:en"
+      ],
+      "preferred_domains": [
+        "openai.com",
+        "anthropic.com",
+        "google.com",
+        "microsoft.com",
+        "aws.amazon.com"
+      ],
+      "style_guide": {
+        "heading_pattern": "比較軸 -> 向いている場面 -> 選び方",
+        "avoid_phrases": ["最強", "完全上位互換", "全部これでいい"],
+        "reference_style": "OpenAI、Google、Anthropicの公式ページを優先する",
+        "cta_style": "自分の業務でまず1つ置き換える場所を決めてください。",
+        "series_name": "Gemini / GPT / Claude実務比較"
+      },
+      "brief_template": {
+        "sections_to_cover": ["比較テーマ", "各サービスの向き不向き", "判断基準", "導入時の注意"],
+        "angle": "機能列挙ではなく、仕事の置き場所を決める比較記事にする",
+        "objective": "Gemini、GPT、Claudeの違いを、実務の選定判断に使える形で整理する"
+      },
+      "quality_gates": {
+        "max_duplicate_overlap": 0.5,
+        "min_reference_links": 2,
+        "min_primary_source_ratio": 0.5,
+        "max_summary_length": 170,
+        "forbid_duplicate_headings": true
+      }
+    },
+    {
+      "id": "claude",
+      "label": "Claude活用",
+      "description": "Claudeを仕事に入れるための設計と運用の実務記事",
+      "output_dir": "2026-04-claude-week1",
+      "publish": true,
+      "automation_enabled": true,
+      "target_reader": "Claudeを業務フローに組み込みたい企画担当者や開発者",
+      "tone": "構造的で具体的",
+      "feed_urls": [
+        "https://news.google.com/rss/search?q=Claude+Anthropic+when:1d&hl=en-US&gl=US&ceid=US:en",
+        "https://news.google.com/rss/search?q=Claude+AI+%E6%B4%BB%E7%94%A8+when:1d&hl=ja&gl=JP&ceid=JP:ja"
+      ],
+      "preferred_domains": [
+        "anthropic.com",
+        "claude.com",
+        "aws.amazon.com",
+        "cloud.google.com",
+        "microsoft.com"
+      ],
+      "style_guide": {
+        "heading_pattern": "機能変化 -> ワークフロー影響 -> 設計指針",
+        "avoid_phrases": ["万能", "思考不要", "完全代替"],
+        "reference_style": "Anthropic公式と主要クラウド連携情報を優先する",
+        "cta_style": "既存ワークフローで置き換える1工程を決めてください。",
+        "series_name": "Claude運用設計ノート"
+      },
+      "brief_template": {
+        "sections_to_cover": ["今回の変化", "Claude固有の意味", "導入設計の論点", "次に見るべき運用指標"],
+        "angle": "機能紹介ではなく、Claudeをどう組み込むかの設計観点で整理する",
+        "objective": "Claude活用の最新動向を、業務フロー設計の判断材料として整理する"
+      },
+      "quality_gates": {
+        "max_duplicate_overlap": 0.5,
+        "min_reference_links": 2,
+        "min_primary_source_ratio": 0.6,
+        "max_summary_length": 170,
+        "forbid_duplicate_headings": true
+      }
+    },
+    {
+      "id": "industry_dx_ai_watch",
+      "label": "業界別DX・AI導入事例ウォッチ",
+      "description": "製造、小売、金融、物流、行政などのAI導入事例を業界単位で追うウォッチ記事",
+      "output_dir": "2026-04-industry-dx-ai-watch-week1",
+      "publish": true,
+      "automation_enabled": false,
+      "target_reader": "各業界のDX・AI導入事例を横断して把握したい実務担当者",
+      "tone": "俯瞰的で、構造変化を重視する",
+      "style_guide": {
+        "heading_pattern": "何が導入されたか -> 構造変化 -> 次に見る点",
+        "avoid_phrases": ["一強", "完全勝利", "全部置き換わる"],
+        "reference_style": "企業公式発表と一次情報を優先する",
+        "cta_style": "自分の業界で次に見るべき論点を1つ決めてください。",
+        "series_name": "業界別DX・AI導入ウォッチ"
+      },
+      "brief_template": {
+        "sections_to_cover": ["導入内容", "業界への意味", "他業界との違い", "次に見るべき点"],
+        "angle": "ニュース要約ではなく、業界構造と実務インパクトを整理する"
+      },
+      "quality_gates": {
+        "max_duplicate_overlap": 0.48,
+        "min_reference_links": 3,
+        "min_primary_source_ratio": 0.67,
+        "max_summary_length": 170,
+        "forbid_duplicate_headings": true
+      }
+    },
+    {
+      "id": "disaster_dx",
+      "label": "防災DX",
+      "description": "国、自治体、民間、生活者の動きを横断して読む防災DXウォッチ",
+      "output_dir": "disaster-dx-watch",
+      "publish": true,
+      "automation_enabled": true,
+      "target_reader": "防災、自治体DX、危機管理、インフラ領域に関心のある実務担当者",
+      "tone": "冷静で俯瞰的、一次情報を重視する",
+      "feed_urls": [
+        "https://news.google.com/rss/search?q=%E9%98%B2%E7%81%BDDX+when:1d&hl=ja&gl=JP&ceid=JP:ja",
+        "https://news.google.com/rss/search?q=%E7%81%BD%E5%AE%B3+DX+%E8%87%AA%E6%B2%BB%E4%BD%93+when:1d&hl=ja&gl=JP&ceid=JP:ja",
+        "https://news.google.com/rss/search?q=disaster+technology+government+when:1d&hl=en-US&gl=US&ceid=US:en"
+      ],
+      "preferred_domains": [
+        "digital.go.jp",
+        "mlit.go.jp",
+        "soumu.go.jp",
+        "meti.go.jp",
+        "bousai.go.jp"
+      ],
+      "style_guide": {
+        "heading_pattern": "動き -> 構造変化 -> 実務示唆",
+        "avoid_phrases": ["画期的", "万能", "一気に解決"],
+        "reference_style": "国・自治体・公的機関・一次発表を優先する",
+        "cta_style": "自組織で先に確認すべき論点を1つ決めてください。",
+        "series_name": "防災DXウォッチ"
+      },
+      "brief_template": {
+        "sections_to_cover": ["今何が起きたか", "過去の流れとの違い", "国・民間・生活者への影響", "次に見るべき論点"],
+        "angle": "断片ニュースではなく、構造変化と運用インパクトを読む",
+        "objective": "防災DXの最新動向を、制度・運用・生活者の変化まで含めて整理する"
+      },
+      "quality_gates": {
+        "max_duplicate_overlap": 0.48,
+        "min_reference_links": 3,
+        "min_primary_source_ratio": 0.67,
+        "max_summary_length": 170,
+        "forbid_duplicate_headings": true
+      }
+    },
+    {
+      "id": "apple_products",
+      "label": "Apple製品",
+      "description": "Appleの最新ラインアップを、用途と買い分けの観点で整理するウォッチ",
+      "output_dir": "apple-products-watch",
+      "publish": true,
+      "automation_enabled": false,
+      "target_reader": "Apple製品の買い替えや比較をしたい人",
+      "tone": "公式情報をベースに冷静に比較する",
+      "style_guide": {
+        "heading_pattern": "何が変わったか -> 誰に向くか -> 選び方",
+        "avoid_phrases": ["最強", "絶対買い", "情弱"],
+        "reference_style": "Apple公式の発表と仕様ページを優先する",
+        "cta_style": "自分が変えたい用途を1つ決めて比較してください。",
+        "series_name": "Apple製品ウォッチ"
+      },
+      "brief_template": {
+        "sections_to_cover": ["今回の論点", "製品の位置づけ", "誰に向くか", "選ぶ時の基準"],
+        "angle": "発表の羅列ではなく、使い分けの判断軸で整理する"
+      },
+      "quality_gates": {
+        "max_duplicate_overlap": 0.5,
+        "min_reference_links": 2,
+        "min_primary_source_ratio": 0.8,
+        "max_summary_length": 170,
+        "forbid_duplicate_headings": true
+      }
+    },
+    {
+      "id": "tennis_menu",
+      "label": "テニス練習メニュー",
+      "description": "一人でも二人でも回しやすい、目的別のテニス練習メニュー集",
+      "output_dir": "tennis-practice-menu",
+      "publish": true,
+      "automation_enabled": false,
+      "target_reader": "部活、サークル、個人練習でメニューを探しているテニスプレーヤー",
+      "tone": "再現しやすく、無理のない実践重視",
+      "style_guide": {
+        "heading_pattern": "目的 -> メニュー -> 失敗しやすい点 -> 今日の本数",
+        "avoid_phrases": ["根性で", "とにかく打て", "絶対"],
+        "reference_style": "USTAやITFの基礎指導と一般的なコーチング原則を優先する",
+        "cta_style": "次の練習でまず1メニューだけ試してください。",
+        "series_name": "テニス練習メニュー集"
+      },
+      "brief_template": {
+        "sections_to_cover": ["今日の目的", "練習メニュー", "よくある失敗", "終わり方"],
+        "angle": "抽象論ではなく、コートですぐ回せる本数と順番まで落とす"
+      },
+      "quality_gates": {
+        "max_duplicate_overlap": 0.45,
+        "min_reference_links": 2,
+        "min_primary_source_ratio": 0.5,
+        "max_summary_length": 170,
+        "forbid_duplicate_headings": true
+      }
+    }
+  ]
+}

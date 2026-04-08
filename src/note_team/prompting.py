@@ -122,6 +122,44 @@ $output_contract
 
 # 指示
 編集レビューとして、弱い箇所と改善提案を優先度順にまとめてください。""",
+    "fact_review": """# 役割
+$agent_name として動作してください。
+
+# ミッション
+$agent_mission
+
+# 案件ブリーフ
+```json
+$brief_json
+```
+
+# 引き継ぎ済みコンテキスト
+$upstream_context
+
+# 出力契約
+$output_contract
+
+# 指示
+事実性、根拠、鮮度、品質ゲートの観点でレビューしてください。""",
+    "editorial_review": """# 役割
+$agent_name として動作してください。
+
+# ミッション
+$agent_mission
+
+# 案件ブリーフ
+```json
+$brief_json
+```
+
+# 引き継ぎ済みコンテキスト
+$upstream_context
+
+# 出力契約
+$output_contract
+
+# 指示
+読みやすさ、重複、構成、スタイルガイドの観点でレビューしてください。""",
     "final_edit": """# 役割
 $agent_name として動作してください。
 
