@@ -1117,26 +1117,6 @@ def page_shell(title: str, body: str, extra_head: str = "") -> str:
       min-width: 0;
       overflow: hidden;
     }}
-    .article-slide {{
-      margin: 0 0 20px;
-      border-radius: 22px;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      background: #f8f3ea;
-      box-shadow: var(--shadow);
-    }}
-    .article-slide img {{
-      width: 100%;
-      height: auto;
-    }}
-    .article-slide figcaption {{
-      padding: 12px 14px;
-      border-top: 1px solid var(--line);
-      color: var(--muted);
-      font-size: 0.9rem;
-      line-height: 1.7;
-      background: rgba(255,255,255,0.72);
-    }}
     .tag {{
       display: inline-flex;
       align-items: center;
@@ -1731,10 +1711,6 @@ def build_group_page(group: dict[str, object], groups: list[dict[str, object]]) 
     articles = "".join(
         f"""
 <article id="{html.escape(article.anchor)}" class="article-panel">
-  <figure class="article-slide">
-    <img src="../{html.escape(article.slide_asset_path)}" alt="{html.escape(article.title)} の補足スライド">
-    <figcaption>記事全体の要点を先に掴むための補足スライドです。タイトル、要約、主要ポイントを1枚に整理しています。</figcaption>
-  </figure>
   <div class="tag">{html.escape(str(group['label']))}</div>
   <header>
     <h2>{html.escape(article.title)}</h2>
