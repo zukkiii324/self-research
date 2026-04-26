@@ -152,4 +152,4 @@ python3 run_note_team.py run \
 - `Apple製品`
 - `テニス練習メニュー`
 
-`scripts/check_daily_theme_coverage.py` は、公開対象テーマについて `今日の記事があるか` を毎日点検し、`automation/daily_coverage/` にレポートを保存します。
+`scripts/check_daily_theme_coverage.py` は、公開対象テーマについて `今日の記事があるか` を点検し、`automation/daily_coverage/` にレポートを保存します。GitHub Actions (`daily_theme_coverage.yml`) は現在 `workflow_dispatch` のみで、定期実行は停止しています。

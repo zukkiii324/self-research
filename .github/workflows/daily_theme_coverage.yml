@@ -1,8 +1,6 @@
 name: Daily Theme Coverage
 
 on:
-  schedule:
-    - cron: '5 15 * * *'
   workflow_dispatch:
 
 permissions:
