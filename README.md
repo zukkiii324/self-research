@@ -134,9 +134,9 @@ python3 run_note_team.py run \
    python3 scripts/build_publish_site.py
    ```
 
-2. GitHub Actions (`.github/workflows/deploy_static_blog.yml`) は `publish_site/` を `gh-pages` ブランチへ配信します。`content/` と公開生成ロジックの変更が、自動で公開面へ反映されます。
+2. GitHub Actions (`.github/workflows/deploy_static_blog.yml`) は `publish_site/` を `gh-pages` ブランチへ配信します。現在は自動公開を停止し、`workflow_dispatch` での手動実行のみ受け付ける構成です。再開するには `on:` に `push:` トリガー（旧 `paths` フィルタ）を戻してください。
 
-3. `.github/workflows/automation_cycle.yml` は 4時間ごとに `autopilot` を実行し、`content/` と `publish_site/` を更新して `main` へ commit します。
+3. `.github/workflows/automation_cycle.yml` は `autopilot` を実行し、`content/` と `publish_site/` を更新して `main` へ commit します。現在は手動実行 (`workflow_dispatch`) のみで、定期実行は停止しています。再開には repository secret `NOTE_TEAM_RUNNER_COMMAND` の登録と、`schedule` トリガー (`cron: '0 */4 * * *'` など) の追記が必要です。
 
 4. GitHub Pages 側の設定（Settings → Pages で `gh-pages` ブランチをソース指定）を行えば、`Note Multi-Agent Blog` が継続的に更新されます。
 

@@ -1,13 +1,7 @@
 name: Deploy Publish Site
 
 on:
-  push:
-    paths:
-      - 'content/**'
-      - 'scripts/build_publish_site.py'
-      - 'config/topic_catalog.json'
-      - 'src/note_team/**'
-      - '.github/workflows/deploy_static_blog.yml'
+  workflow_dispatch:
 
 permissions:
   contents: write

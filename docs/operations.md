@@ -23,7 +23,7 @@ python3 run_note_team.py run --brief examples/brief.sample.json --mode mock
 
 用途:
 
-- 4時間ごとの最新記事生成
+- 定期的な最新記事生成（現在は手動 `workflow_dispatch` のみ。secret 登録後に `schedule` を戻す前提）
 - 公開面の継続更新
 - 重複回避を前提にした記事資産の拡張
 
@@ -41,11 +41,12 @@ python3 run_note_team.py autopilot \
 
 ## 定期実行
 
-GitHub Actions では `.github/workflows/automation_cycle.yml` を使い、`4時間ごと` に自動運転を回します。
+GitHub Actions の `.github/workflows/automation_cycle.yml` を使って自動運転を回します。現状は secret 未設定により定期実行 (`schedule`) を停止し、`workflow_dispatch`（手動トリガー）のみ有効です。
 
-必要な前提:
+定期実行を再開するための前提:
 
 - `NOTE_TEAM_RUNNER_COMMAND` を repository secret に設定していること
+- `automation_cycle.yml` の `on:` に `schedule: - cron: '0 */4 * * *'` を戻すこと
 - runner command から利用する外部 LLM が安定していること
 - `content/` と `publish_site/` を commit できること
 

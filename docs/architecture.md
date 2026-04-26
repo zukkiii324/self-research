@@ -85,7 +85,7 @@ WorkflowRunner
 7. `content/` と `publish_site/` を更新する
 8. `automation/runs/` に実行記録を残す
 
-GitHub Actions では `4時間ごと` にこのサイクルを回す想定です。
+GitHub Actions では `4時間ごと` にこのサイクルを回す想定でしたが、現在は `workflow_dispatch` のみで動かす運用に変更しています。定期実行を戻すには `automation_cycle.yml` に `schedule` を追記し、repository secret `NOTE_TEAM_RUNNER_COMMAND` を設定してください。
 
 ### 公開面
 
